@@ -13,7 +13,27 @@
       - This software uses the output from Dump1090 Logs it and has some statistics around the data.
      
   - Initially, we'll build the data to play with it within our bot.  Initially, it will be a request/response type of scenario. If ( big If) I feel confident I may incorporate an if-then-else function here, where if an aircraft is within a certain mileage it will alert the meshtastic channel. I am not confident in my abilities so far yet, that's why I preface it with an If. 
-## Section 1 ( ADSB Data)
+## Section 1.0 ( ADSB Data)
+Let's try to simpligy this.
+
+  - We'll need DOcker
+  - Linux
+  - Plug In your RTL-SDR
+  - Make sure you see this ```lsusb | grep -i rtl```
+```
+
+Run Docker Container
+
+docker run -d \
+  --name readsb \
+  --restart unless-stopped \
+  --device /dev/bus/usb:/dev/bus/usb \
+  -p 8080:8080 \
+  -p 30005:30005 \
+  mikenye/readsb-protobuf
+```
+
+## Section 1.1 ( ADSB Data)
 - 1 Install RTL-SDR Dongle and IT's drivers, while we won't be using SDRSharp it would be wise to get that up and running. (It will ensure you have your SDR dongle working)
   - 1.1 Plug Everything in 
 - 2 Download and extract Dump1090
