@@ -48,21 +48,20 @@ cd TT-BBSmesh-Plus
    ```
 3. Activate the virtual environment:  
     ```sh
-   venv\Scripts\activate  
-   ```
-4. Install the required packages:  
+   source venv/bin/activate   ```
+5. Install the required packages:  
    
    ```sh
    pip install -r requirements.txt
    ```
 
-5. Rename `example_config.ini`:
+6. Rename `example_config.ini`:
 
    ```sh
    cp example_config.ini config.ini
    ```
 
-6. Set up the configuration in `config.ini`:  
+7. Set up the configuration in `config.ini`:  
 
    You'll need to open up the config.ini file in a text editor and make your changes following the instructions below
    
@@ -174,4 +173,5 @@ A video of it in use is available on our YouTube channel:
 ## License
 
 GNU General Public License v3.0
+
 
