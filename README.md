@@ -37,8 +37,8 @@
 
 1. Clone the repository:
 ```sh
-git clone https://github.com/TheCommsChannel/TC2-BBS-mesh.git
-cd TC2-BBS-mes
+[git clone https://github.com/TechTucson/TT-BBSmesh-Plus.git]
+cd TT-BBSmesh-Plus
    ```
 
 2. Set up a Python virtual environment:  
@@ -174,3 +174,4 @@ A video of it in use is available on our YouTube channel:
 ## License
 
 GNU General Public License v3.0
+
