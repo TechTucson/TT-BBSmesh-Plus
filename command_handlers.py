@@ -2,6 +2,7 @@ import configparser
 import logging
 import random
 import time
+import datetime
 
 from meshtastic import BROADCAST_NUM
 
@@ -49,6 +50,8 @@ def build_menu(items, menu_name):
             menu_str += "[F]ortune\n"
         elif item.strip() == 'W':
             menu_str += "[W]all of Shame\n"
+        elif item.strip() == 'T':
+            menu_str += "[T]ime\n"          
     return menu_str
 
 
@@ -662,3 +665,7 @@ def handle_quick_help_command(sender_id, interface):
     response = ("✈️QUICK COMMANDS✈️\nSend command below for usage info:\nSM,, - Send "
                 "Mail\nCM - Check Mail\nPB,, - Post Bulletin\nCB,, - Check Bulletins\n")
     send_message(response, sender_id, interface)
+    
+def handle_time_command(sender_id, interface, menu_name=None):
+    now = datetime.datetime.now()
+    send_message(now.strftime("%Y-%m-%d %H:%M:%S"), sender_id, interface)
