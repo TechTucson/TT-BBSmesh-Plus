@@ -26,7 +26,9 @@ Run Docker Container
 
 sudo docker run -d   --name readsb3   --device=/dev/bus/usb   -p 8090:8080   -p 30003:30003   -p 30005:30005   --restart unless-stopped   ghcr.io/wiedehopf/readsb:latest   --device-type rtlsdr  --write-json yes   --json-location /run/readsb   --write-json-every 1
 
-I took a simpler route to get the datafeed. I am taking the logs from the docker container and parsing those with Python. COming soon. 
+I took a simpler route to get the datafeed. I am taking the logs from the docker container and parsing those with Python. COming soon.
+
+https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/ADSBPArser.py
 ```
 
 ## Section 1.1 ( ADSB Data)
