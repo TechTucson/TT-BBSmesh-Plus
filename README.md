@@ -1,10 +1,13 @@
 # (TechTucson) TC²-BBS Meshtastic Version
 
-- This is the TC²-BBS system integrated with Meshtastic devices. The system allows for message handling, bulletin boards, mail systems, and a channel directory.
-- TC2 over at https://github.com/TheCommsChannel has done some great work with the TC²-BBS system, this project blends various topics that have interested me for a while, meshtastic, python, and in essence emergency communications. By interested I mean I consider myself a novice, I figured I would take the opportunity to learn more about these topics by adding functionality to this already great resource.
-- I am adding on top of something that is already built 1:) because why reinvent the wheel 2:) I am learning
-- Inspiration came initially not from TC2 but from this repo: https://github.com/SpudGunMan/meshing-around
+This project extends the TC²-BBS system integrated with Meshtastic devices. It provides core BBS functionality including message handling, bulletin boards, mail services, and a channel directory.
 
+TC2 (https://github.com/TheCommsChannel
+) has done excellent work building TC²-BBS. This project builds directly on that foundation, bringing together several areas I’ve been interested in for a while: Meshtastic, Python, and emergency communications.
+
+I still consider myself a novice in these spaces, so this effort is as much about learning as it is about adding functionality. Rather than reinventing the wheel, I chose to build on an existing, well-designed project—both for efficiency and as a hands-on way to deepen my understanding.
+
+While TC²-BBS forms the core of this work, the original inspiration actually came from this repository: https://github.com/SpudGunMan/meshing-around
 ## Proposed enhancements
 
 - TC²-BBS already comes with the essentials which include a BBS, Mail, and even JS8 Integration. The Integrations that I am thinking about at the moment are:
@@ -173,5 +176,6 @@ A video of it in use is available on our YouTube channel:
 ## License
 
 GNU General Public License v3.0
+
 
 
