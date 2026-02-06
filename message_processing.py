@@ -9,7 +9,7 @@ from command_handlers import (
     handle_read_mail_command, handle_check_mail_command, handle_delete_mail_confirmation, handle_post_bulletin_command,
     handle_check_bulletin_command, handle_read_bulletin_command, handle_read_channel_command,
     handle_post_channel_command, handle_list_channels_command, handle_quick_help_command, handle_time_command,
-    handle_sunmoon_command
+    handle_sunmoon_command, handle_dictionary_command, handle_dictionary_steps
 )
 from db_operations import add_bulletin, add_mail, delete_bulletin, delete_mail, get_db_connection, add_channel
 from js8call_integration import handle_js8call_command, handle_js8call_steps, handle_group_message_selection
@@ -43,6 +43,8 @@ utilities_menu_handlers = {
     "2": handle_fortune_command,
     "3": handle_wall_of_shame_command,
     "4": handle_time_command,
+    "d": handle_dictionary_command,
+    "6": handle_dictionary_command,
 }
 
 
@@ -152,6 +154,8 @@ def process_message(sender_id, message, interface, is_sync_message=False):
                     handle_stats_steps(sender_id, message, step, interface)
                 elif command == 'CHANNEL_DIRECTORY':
                     handle_channel_directory_steps(sender_id, message, step, state, interface)
+                elif command == 'DICTIONARY':
+                    handle_dictionary_steps(sender_id, message, step, state, interface)
                 elif command == 'CHECK_MAIL':
                     if step == 1:
                         handle_read_mail_command(sender_id, message, state, interface)
