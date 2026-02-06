@@ -21,6 +21,7 @@ from utils import (
     get_node_short_name, send_message,
     update_user_state
 )
+from Ollama import ask_ollama
 
 # Read the configuration for menu options
 config = configparser.ConfigParser()
@@ -66,6 +67,8 @@ def build_menu(items, menu_name):
             menu_str += "[D]efine [6]\n"
         elif item.strip() == 'A':
             menu_str += "[A]DSB [7]\n"
+        elif item.strip() == 'O':
+            menu_str += "[O]llama [8]\n"
     return menu_str
 
 
@@ -798,3 +801,37 @@ def handle_adsb_steps(sender_id, message, step, state, interface):
             handle_adsb_command(sender_id, interface)
         else:
             send_message("Invalid choice. Choose [L]ast plane, [T]op 10, or E[X]IT.", sender_id, interface)
+
+
+def handle_ollama_command(sender_id, interface):
+    response = "🤖 Ollama 🤖\nPress [P] to send a prompt or E[X]IT."
+    send_message(response, sender_id, interface)
+    update_user_state(sender_id, {'command': 'OLLAMA', 'step': 1})
+
+
+def handle_ollama_steps(sender_id, message, step, state, interface):
+    message = message.strip()
+    if len(message) == 2 and message[1].lower() == 'x':
+        message = message[0]
+
+    if step == 1:
+        choice = message.lower()
+        if choice == 'x':
+            handle_help_command(sender_id, interface, 'utilities')
+            return
+        if choice == 'p':
+            send_message("Send the prompt you want to ask Ollama:", sender_id, interface)
+            update_user_state(sender_id, {'command': 'OLLAMA', 'step': 2})
+        else:
+            send_message("Invalid choice. Press [P] to send a prompt or E[X]IT.", sender_id, interface)
+    elif step == 2:
+        prompt = message.strip()
+        if not prompt:
+            send_message("Please send a prompt for Ollama.", sender_id, interface)
+            return
+        try:
+            response = ask_ollama(prompt)
+            send_message(response, sender_id, interface)
+        except Exception as e:
+            send_message(f"Error getting Ollama response: {e}", sender_id, interface)
+        handle_ollama_command(sender_id, interface)
