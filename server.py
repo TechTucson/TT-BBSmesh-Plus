@@ -38,7 +38,7 @@ js8call_handler.setFormatter(js8call_formatter)
 js8call_logger.addHandler(js8call_handler)
 
 def display_banner():
-banner = """
+ banner = """
 ████████╗███████╗ ██████╗██╗  ██╗    ████████╗██╗   ██╗ ██████╗███████╗ ██████╗ ███╗   ██╗
 ╚══██╔══╝██╔════╝██╔════╝██║  ██║    ╚══██╔══╝██║   ██║██╔════╝██╔════╝██╔═══██╗████╗  ██║
    ██║   █████╗  ██║     ███████║       ██║   ██║   ██║██║     ███████╗██║   ██║██╔██╗ ██║
@@ -47,8 +47,8 @@ banner = """
    ╚═╝   ╚══════╝ ╚═════╝╚═╝  ╚═╝       ╚═╝    ╚═════╝  ╚═════╝╚══════╝ ╚═════╝ ╚═╝  ╚═══╝
 
 TechTucson
-"""
-    print(banner)
+	"""
+ print(banner)
 
 def main():
     display_banner()
