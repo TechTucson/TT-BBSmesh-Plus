@@ -3,7 +3,7 @@ import sys
 
 # -------- CONFIG --------
 OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "llama3"   # <-- change this to whatever model you want
+MODEL = "tinyllama"   # <-- change this to whatever model you want
 # ------------------------
 
 def ask_ollama(prompt):
