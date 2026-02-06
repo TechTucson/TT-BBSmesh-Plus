@@ -1,4 +1,4 @@
-# (TechTucson) TC²-BBS Meshtastic Version
+# (TechTucson) TT-BBSMesh Plus Meshtastic Version
 
 This project extends the TC²-BBS system integrated with Meshtastic devices. It provides core BBS functionality including message handling, bulletin boards, mail services, and a channel directory.
 
@@ -28,18 +28,16 @@ While TC²-BBS forms the core of this work, the original inspiration actually ca
 
 ## Setup
 - Believe it or not, I am attempting to do this solely on a Windows Machine and port this at a future time to my SBCs Running Linux. Why Windows? Well it's running on a lot more things, Figured I'd try to make it easier on the entry-level folks giving things a try.
+  - Since we are testing and adding functionality, I have moved this to a MiniPC Running Ubuntu 24.04. 
 ### Requirements
 
 - Python 3.x
   - https://www.python.org/downloads/
 - Meshtastic
   - I am Using Lora, but you are free to use any device you have or you'd like ( as long as they can run Meshtastic)
-- pypubsub
 - ADSB
-  - https://github.com/gvanem/Dump1090
   - RTL-SDR V3
-  - https://github.com/nfacha/adsb-stats-logger/
-
+    - ```sudo docker run -d   --name readsb3   --device=/dev/bus/usb   -p 8090:8080   -p 30003:30003   -p 30005:30005   --restart unless-stopped   ghcr.io/wiedehopf/readsb:latest   --device-type rtlsdr  --write-json yes   --json-location /run/readsb   --write-json-every 1```
 
 ### Installation
 
@@ -181,6 +179,7 @@ A video of it in use is available on our YouTube channel:
 ## License
 
 GNU General Public License v3.0
+
 
 
 
