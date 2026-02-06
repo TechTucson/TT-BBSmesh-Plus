@@ -2,24 +2,29 @@
 
 This project extends the TC²-BBS system integrated with Meshtastic devices. It provides core BBS functionality including message handling, bulletin boards, mail services, and a channel directory.
 
-TC2 (https://github.com/TheCommsChannel
-) has done excellent work building TC²-BBS. This project builds directly on that foundation, bringing together several areas I’ve been interested in for a while: Meshtastic, Python, and emergency communications.
+TC2 (https://github.com/TheCommsChannel) has done excellent work building TC²-BBS. This project builds directly on that foundation, bringing together several areas I’ve been interested in for a while: Meshtastic, Python, and emergency communications.
 
-I still consider myself a novice in these spaces, so this effort is as much about learning as it is about adding functionality. Rather than reinventing the wheel, I chose to build on an existing, well-designed project—both for efficiency and as a hands-on way to deepen my understanding.
+I still consider myself a novice in these spaces, so this effort is as much about learning as it is about adding functionality. Rather than reinventing the wheel, I chose to build on an existing, well-designed project, both for efficiency and as a hands-on way to deepen my understanding.
 
 While TC²-BBS forms the core of this work, the original inspiration actually came from this repository: https://github.com/SpudGunMan/meshing-around
-## Proposed enhancements
+## Added Enhancements
 
-- TC²-BBS already comes with the essentials which include a BBS, Mail, and even JS8 Integration. The Integrations that I am thinking about at the moment are:
+- TC²-BBS already comes with the essentials which include a BBS, Mail, and even JS8 Integration. The Integrations that I have completed at the moment are:
   - Adding a Bot that tells you the time.
+    - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/TIME.md   
+
   - Adding a Bot that tells you the sunset/sunrise.
+    - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/SUN.md   
+   
   - Adding a Dictionary
-    - This one is a bit tricky ( at least for me) Definitions are more than the length allowed in a single message. Proof of concept will be to display the first X characters of the definition with follow-up work to send the entire definition in chunks.   
+    - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/ENHANCEMENT-DICTIONARY.md   
   - Adding some sort of ADSB Functionality
+    - You can see the latest ( and the last 10) planes your ADSB Receiver has logged.
+    - Take a look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/ENHANCEMENT-ADSB.md
+  - Added a Local LLM using Ollama
+    - Take a Look here: Coming Soon   
+## Upcoming Enhancements
   - Adding some sort of APRS Functionality
-- Subsequent README files as well as examples will be added for each of these enhancements 
-
-
 
 ## Setup
 - Believe it or not, I am attempting to do this solely on a Windows Machine and port this at a future time to my SBCs Running Linux. Why Windows? Well it's running on a lot more things, Figured I'd try to make it easier on the entry-level folks giving things a try.
@@ -176,6 +181,7 @@ A video of it in use is available on our YouTube channel:
 ## License
 
 GNU General Public License v3.0
+
 
 
 
