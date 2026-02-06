@@ -1,0 +1,1 @@
+sudo docker run -d   --name readsb3   --device=/dev/bus/usb   -p 8090:8080   -p 30003:30003   -p 30005:30005   --restart unless-stopped   ghcr.io/wiedehopf/readsb:latest   --device-type rtlsdr  --write-json yes   --json-location /run/readsb   --write-json-every 1
