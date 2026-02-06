@@ -1,8 +1,11 @@
 import configparser
-import logging
-import random
-import time
 import datetime
+import json
+import logging
+import os
+import random
+import subprocess
+import time
 from suntime import Sun, SunTimeException
 
 from meshtastic import BROADCAST_NUM
@@ -26,6 +29,10 @@ config.read('config.ini')
 main_menu_items = config['menu']['main_menu_items'].split(',')
 bbs_menu_items = config['menu']['bbs_menu_items'].split(',')
 utilities_menu_items = config['menu']['utilities_menu_items'].split(',')
+
+DICTIONARY_PATH = os.path.join('Tools', 'dictionary.json')
+_dictionary_cache = None
+ADSB_PARSER_PATH = os.path.join(os.path.dirname(__file__), 'ADSBPArser.py')
 
 
 def build_menu(items, menu_name):
@@ -55,6 +62,10 @@ def build_menu(items, menu_name):
             menu_str += "[T]ime [4]\n"
         elif item.strip() == 'N':
             menu_str += "Su[N]Moon [5]\n"
+        elif item.strip() == 'D':
+            menu_str += "[D]efine [6]\n"
+        elif item.strip() == 'A':
+            menu_str += "[A]DSB [7]\n"
     return menu_str
 
 
@@ -692,3 +703,98 @@ def handle_sunmoon_command(sender_id, interface, menu_name=None):
         send_message(f"Sun/Moon time error: {e}", sender_id, interface)
     except Exception as e:
         send_message(f"Error getting sunrise/sunset: {e}", sender_id, interface)
+
+
+def _load_dictionary():
+    global _dictionary_cache
+    if _dictionary_cache is None:
+        with open(DICTIONARY_PATH, 'r', encoding='utf-8') as file:
+            _dictionary_cache = json.load(file)
+    return _dictionary_cache
+
+
+def handle_dictionary_command(sender_id, interface):
+    response = "📚 DICTIONARY 📚\nPress [P] to send a word or E[X]IT."
+    send_message(response, sender_id, interface)
+    update_user_state(sender_id, {'command': 'DICTIONARY', 'step': 1})
+
+
+def handle_dictionary_steps(sender_id, message, step, state, interface):
+    message = message.lower().strip()
+    if len(message) == 2 and message[1] == 'x':
+        message = message[0]
+
+    if step == 1:
+        if message == 'x':
+            handle_help_command(sender_id, interface, 'utilities')
+            return
+        if message == 'p':
+            send_message("Send the word you want to define:", sender_id, interface)
+            update_user_state(sender_id, {'command': 'DICTIONARY', 'step': 2})
+        else:
+            send_message("Invalid choice. Press [P] to send a word or E[X]IT.", sender_id, interface)
+    elif step == 2:
+        word = message.strip()
+        if not word:
+            send_message("Please send a word to define.", sender_id, interface)
+            return
+        try:
+            dictionary = _load_dictionary()
+            definition = dictionary.get(word)
+            if not definition:
+                send_message(f"No definition found for '{word}'.", sender_id, interface)
+            else:
+                response = f"{word.capitalize()}: {definition}"
+                send_message(response, sender_id, interface)
+        except FileNotFoundError:
+            send_message("Dictionary data not found. Please contact the administrator.", sender_id, interface)
+        except json.JSONDecodeError:
+            send_message("Dictionary data is invalid. Please contact the administrator.", sender_id, interface)
+        except Exception as e:
+            send_message(f"Error looking up definition: {e}", sender_id, interface)
+        handle_dictionary_command(sender_id, interface)
+
+
+def handle_adsb_command(sender_id, interface):
+    response = "✈️ ADS-B ✈️\nChoose [L]ast plane, [T]op 10, or E[X]IT."
+    send_message(response, sender_id, interface)
+    update_user_state(sender_id, {'command': 'ADSB', 'step': 1})
+
+
+def _run_adsb_parser(mode):
+    try:
+        result = subprocess.run(
+            ["python3", ADSB_PARSER_PATH, "--mode", mode],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True
+        )
+        output = result.stdout.strip()
+        return output if output else "No output returned from ADS-B parser."
+    except FileNotFoundError:
+        return "ADSB parser script not found. Please contact the administrator."
+    except subprocess.CalledProcessError as e:
+        error_output = e.stderr.strip() or "Unknown error running ADS-B parser."
+        return f"Error running ADS-B parser: {error_output}"
+
+
+def handle_adsb_steps(sender_id, message, step, state, interface):
+    message = message.lower().strip()
+    if len(message) == 2 and message[1] == 'x':
+        message = message[0]
+
+    if step == 1:
+        if message == 'x':
+            handle_help_command(sender_id, interface, 'utilities')
+            return
+        if message == 'l':
+            response = _run_adsb_parser("latest")
+            send_message(response, sender_id, interface)
+            handle_adsb_command(sender_id, interface)
+        elif message == 't':
+            response = _run_adsb_parser("last10")
+            send_message(response, sender_id, interface)
+            handle_adsb_command(sender_id, interface)
+        else:
+            send_message("Invalid choice. Choose [L]ast plane, [T]op 10, or E[X]IT.", sender_id, interface)
