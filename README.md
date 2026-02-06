@@ -43,6 +43,11 @@ While TC²-BBS forms the core of this work, the original inspiration actually ca
   - ADSB Parser Dockerfile
     - The Tools/docker/adsb Dockerfile must be built and running for the ADSBParser utility to function.
     - Ensure the host machine can access the RTL-SDR (rtl_sdr works and the device is visible to Docker).
+- Weatherstac (WXparse)
+  - The Tools/docker/weatherstac stack includes:
+    - `sdr`: tunes NOAA weather radio frequencies with `rtl_fm`, captures audio with `sox`, decodes SAME alerts with `multimon-ng`, and uses Whisper to transcribe voice audio into a shared SQLite database.
+    - `api`: serves the latest/history records from the shared database and provides a simple WebSocket-backed dashboard on port 9000.
+  - The host must have a working RTL-SDR setup (`rtl_sdr` runs and the USB device is visible to Docker).
 
 ### Installation
 
