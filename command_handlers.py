@@ -2,6 +2,8 @@ import configparser
 import logging
 import random
 import time
+import datetime
+from suntime import Sun, SunTimeException
 
 from meshtastic import BROADCAST_NUM
 
@@ -44,11 +46,15 @@ def build_menu(items, menu_name):
         elif item.strip() == 'J':
             menu_str += "[J]S8CALL\n"
         elif item.strip() == 'S':
-            menu_str += "[S]tats\n"
+            menu_str += "[S]tats [1]\n"
         elif item.strip() == 'F':
-            menu_str += "[F]ortune\n"
+            menu_str += "[F]ortune [2]\n"
         elif item.strip() == 'W':
-            menu_str += "[W]all of Shame\n"
+            menu_str += "[W]all of Shame [3]\n"
+        elif item.strip() == 'T':
+            menu_str += "[T]ime [4]\n"
+        elif item.strip() == 'N':
+            menu_str += "Su[N]Moon [5]\n"
     return menu_str
 
 
@@ -662,3 +668,27 @@ def handle_quick_help_command(sender_id, interface):
     response = ("✈️QUICK COMMANDS✈️\nSend command below for usage info:\nSM,, - Send "
                 "Mail\nCM - Check Mail\nPB,, - Post Bulletin\nCB,, - Check Bulletins\n")
     send_message(response, sender_id, interface)
+    
+def handle_time_command(sender_id, interface, menu_name=None):
+    now = datetime.datetime.now()
+    send_message(now.strftime("%Y-%m-%d %H:%M:%S"), sender_id, interface)
+
+
+def handle_sunmoon_command(sender_id, interface, menu_name=None):
+    latitude = 32.2226
+    longitude = -110.9747
+
+    try:
+        sun = Sun(latitude, longitude)
+        sunrise_utc = sun.get_sunrise_time()
+        sunset_utc = sun.get_sunset_time()
+        response = (
+            "🌅🌙 SunMoon (UTC)\n"
+            f"Sunrise: {sunrise_utc.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            f"Sunset:  {sunset_utc.strftime('%Y-%m-%d %H:%M:%S')}"
+        )
+        send_message(response, sender_id, interface)
+    except SunTimeException as e:
+        send_message(f"Sun/Moon time error: {e}", sender_id, interface)
+    except Exception as e:
+        send_message(f"Error getting sunrise/sunset: {e}", sender_id, interface)
