@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+
+  sdr:
+    build: ./sdr
+    devices:
+      - /dev/bus/usb
+    volumes:
+      - data:/data
+
+  api:
+    build: ./api
+    ports:
+      - "9000:8000"
+    volumes:
+      - data:/data
+    depends_on:
+      - sdr
+
+volumes:
+  data:
