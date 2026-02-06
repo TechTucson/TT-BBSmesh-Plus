@@ -40,6 +40,9 @@ While TC²-BBS forms the core of this work, the original inspiration actually ca
 - ADSB
   - RTL-SDR V3
     - ```sudo docker run -d   --name readsb3   --device=/dev/bus/usb   -p 8090:8080   -p 30003:30003   -p 30005:30005   --restart unless-stopped   ghcr.io/wiedehopf/readsb:latest   --device-type rtlsdr  --write-json yes   --json-location /run/readsb   --write-json-every 1```
+  - ADSB Parser Dockerfile
+    - The Tools/docker/adsb Dockerfile must be built and running for the ADSBParser utility to function.
+    - Ensure the host machine can access the RTL-SDR (rtl_sdr works and the device is visible to Docker).
 
 ### Installation
 
