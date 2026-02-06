@@ -28,7 +28,7 @@ sudo docker run -d   --name readsb3   --device=/dev/bus/usb   -p 8090:8080   -p 
 
 I took a simpler route to get the datafeed. I am taking the logs from the docker container and parsing those with Python. COming soon.
 
-https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/ADSBPArser.py
+https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/Tools/ADSBPArser.py
 ```
 
 ## Section 1.1 ( ADSB Data)
@@ -72,4 +72,3 @@ https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/ADSBPArser.py
 ### message_processing.py
 
 # That's it
-

@@ -21,7 +21,7 @@ from utils import (
     get_node_short_name, send_message,
     update_user_state
 )
-from Ollama import ask_ollama
+from Tools.Ollama import ask_ollama
 
 # Read the configuration for menu options
 config = configparser.ConfigParser()
@@ -33,7 +33,7 @@ utilities_menu_items = config['menu']['utilities_menu_items'].split(',')
 
 DICTIONARY_PATH = os.path.join('Tools', 'dictionary.json')
 _dictionary_cache = None
-ADSB_PARSER_PATH = os.path.join(os.path.dirname(__file__), 'ADSBPArser.py')
+ADSB_PARSER_PATH = os.path.join(os.path.dirname(__file__), 'Tools', 'ADSBPArser.py')
 
 
 def build_menu(items, menu_name):
