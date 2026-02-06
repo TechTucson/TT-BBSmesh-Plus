@@ -46,6 +46,7 @@ While TC²-BBS forms the core of this work, the original inspiration actually ca
     - `sdr`: tunes NOAA weather radio frequencies with `rtl_fm`, captures audio with `sox`, decodes SAME alerts with `multimon-ng`, and uses Whisper to transcribe voice audio into a shared SQLite database.
     - `api`: serves the latest/history records from the shared database and provides a simple WebSocket-backed dashboard on port 9000.
   - The host must have a working RTL-SDR setup (`rtl_sdr` runs and the USB device is visible to Docker).
+  - ```sudo docker -d compose up``` 
 
 ### Installation
 
@@ -187,6 +188,7 @@ A video of it in use is available on our YouTube channel:
 ## License
 
 GNU General Public License v3.0
+
 
 
 
