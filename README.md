@@ -1,37 +1,43 @@
-# (TechTucson) TC²-BBS Meshtastic Version
+# (TechTucson) TT-BBSMesh Plus Meshtastic Version
 
-- This is the TC²-BBS system integrated with Meshtastic devices. The system allows for message handling, bulletin boards, mail systems, and a channel directory.
-- TC2 over at https://github.com/TheCommsChannel has done some great work with the TC²-BBS system, this project blends various topics that have interested me for a while, meshtastic, python, and in essence emergency communications. By interested I mean I consider myself a novice, I figured I would take the opportunity to learn more about these topics by adding functionality to this already great resource.
-- I am adding on top of something that is already built 1:) because why reinvent the wheel 2:) I am learning
-- Inspiration came initially not from TC2 but from this repo: https://github.com/SpudGunMan/meshing-around
+This project extends the TC²-BBS system integrated with Meshtastic devices. It provides core BBS functionality including message handling, bulletin boards, mail services, and a channel directory.
 
-## Proposed enhancements
+TC2 (https://github.com/TheCommsChannel) has done excellent work building TC²-BBS. This project builds directly on that foundation, bringing together several areas I’ve been interested in for a while: Meshtastic, Python, and emergency communications.
 
-- TC²-BBS already comes with the essentials which include a BBS, Mail, and even JS8 Integration. The Integrations that I am thinking about at the moment are:
+I still consider myself a novice in these spaces, so this effort is as much about learning as it is about adding functionality. Rather than reinventing the wheel, I chose to build on an existing, well-designed project, both for efficiency and as a hands-on way to deepen my understanding.
+
+While TC²-BBS forms the core of this work, the original inspiration actually came from this repository: https://github.com/SpudGunMan/meshing-around
+## Added Enhancements
+
+- TC²-BBS already comes with the essentials which include a BBS, Mail, and even JS8 Integration. The Integrations that I have completed at the moment are:
   - Adding a Bot that tells you the time.
+    - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/TIME.md   
+
   - Adding a Bot that tells you the sunset/sunrise.
+    - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/SUN.md   
+   
   - Adding a Dictionary
-    - This one is a bit tricky ( at least for me) Definitions are more than the length allowed in a single message. Proof of concept will be to display the first X characters of the definition with follow-up work to send the entire definition in chunks.   
+    - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/ENHANCEMENT-DICTIONARY.md   
   - Adding some sort of ADSB Functionality
+    - You can see the latest ( and the last 10) planes your ADSB Receiver has logged.
+    - Take a look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/ENHANCEMENT-ADSB.md
+  - Added a Local LLM using Ollama
+    - Take a Look here: Coming Soon   
+## Upcoming Enhancements
   - Adding some sort of APRS Functionality
-- Subsequent README files as well as examples will be added for each of these enhancements 
-
-
 
 ## Setup
 - Believe it or not, I am attempting to do this solely on a Windows Machine and port this at a future time to my SBCs Running Linux. Why Windows? Well it's running on a lot more things, Figured I'd try to make it easier on the entry-level folks giving things a try.
+  - Since we are testing and adding functionality, I have moved this to a MiniPC Running Ubuntu 24.04. 
 ### Requirements
 
 - Python 3.x
   - https://www.python.org/downloads/
 - Meshtastic
   - I am Using Lora, but you are free to use any device you have or you'd like ( as long as they can run Meshtastic)
-- pypubsub
 - ADSB
-  - https://github.com/gvanem/Dump1090
   - RTL-SDR V3
-  - https://github.com/nfacha/adsb-stats-logger/
-
+    - ```sudo docker run -d   --name readsb3   --device=/dev/bus/usb   -p 8090:8080   -p 30003:30003   -p 30005:30005   --restart unless-stopped   ghcr.io/wiedehopf/readsb:latest   --device-type rtlsdr  --write-json yes   --json-location /run/readsb   --write-json-every 1```
 
 ### Installation
 
@@ -173,5 +179,8 @@ A video of it in use is available on our YouTube channel:
 ## License
 
 GNU General Public License v3.0
+
+
+
 
 
