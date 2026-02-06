@@ -34,6 +34,7 @@ utilities_menu_items = config['menu']['utilities_menu_items'].split(',')
 DICTIONARY_PATH = os.path.join('Tools', 'dictionary.json')
 _dictionary_cache = None
 ADSB_PARSER_PATH = os.path.join(os.path.dirname(__file__), 'Tools', 'ADSBPArser.py')
+WX_PARSER_PATH = os.path.join(os.path.dirname(__file__), 'Tools', 'wxparser.py')
 
 
 def build_menu(items, menu_name):
@@ -69,6 +70,8 @@ def build_menu(items, menu_name):
             menu_str += "[A]DSB [7]\n"
         elif item.strip() == 'O':
             menu_str += "[O]llama [8]\n"
+        elif item.strip() == 'H':
+            menu_str += "Weat[H]er (WX) [9]\n"
     return menu_str
 
 
@@ -835,3 +838,51 @@ def handle_ollama_steps(sender_id, message, step, state, interface):
         except Exception as e:
             send_message(f"Error getting Ollama response: {e}", sender_id, interface)
         handle_ollama_command(sender_id, interface)
+
+
+def handle_wx_command(sender_id, interface):
+    response = "🌦️ Weather (WX) 🌦️\nSend a number from 1-5 for history, or E[X]IT."
+    send_message(response, sender_id, interface)
+    update_user_state(sender_id, {'command': 'WX', 'step': 1})
+
+
+def _run_wx_parser(entries):
+    try:
+        result = subprocess.run(
+            ["python3", WX_PARSER_PATH, str(entries)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True
+        )
+        output = result.stdout.strip()
+        return output if output else "No output returned from WX parser."
+    except FileNotFoundError:
+        return "WX parser script not found. Please contact the administrator."
+    except subprocess.CalledProcessError as e:
+        error_output = e.stderr.strip() or "Unknown error running WX parser."
+        return f"Error running WX parser: {error_output}"
+
+
+def handle_wx_steps(sender_id, message, step, state, interface):
+    message = message.lower().strip()
+    if len(message) == 2 and message[1] == 'x':
+        message = message[0]
+
+    if step == 1:
+        if message == 'x':
+            handle_help_command(sender_id, interface, 'utilities')
+            return
+        try:
+            entries = int(message)
+        except ValueError:
+            send_message("Invalid choice. Send a number from 1-5 or E[X]IT.", sender_id, interface)
+            return
+
+        if entries < 1 or entries > 5:
+            send_message("Please choose a number from 1-5.", sender_id, interface)
+            return
+
+        response = _run_wx_parser(entries)
+        send_message(response, sender_id, interface)
+        handle_wx_command(sender_id, interface)
