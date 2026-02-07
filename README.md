@@ -22,7 +22,9 @@ While TC²-BBS forms the core of this work, the original inspiration actually ca
     - You can see the latest ( and the last 10) planes your ADSB Receiver has logged.
     - Take a look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/ENHANCEMENT-ADSB.md
   - Added a Local LLM using Ollama
-    - Take a Look here: Coming Soon   
+    - Take a Look here: Coming Soon
+  - Added a Weather Tool This takes audio from National Weather Forecast and SAFE Creates Text, Exposes that text and is presented to the user. 
+    - Take a Look here: Coming Soon  
 ## Upcoming Enhancements
   - Adding some sort of APRS Functionality
 
@@ -70,12 +72,6 @@ cd TT-BBSmesh-Plus
    pip install -r requirements.txt
    ```
 
-6. Rename `example_config.ini`:
-
-   ```sh
-   cp example_config.ini config.ini
-   ```
-
 7. Set up the configuration in `config.ini`:  
 
    You'll need to open up the config.ini file in a text editor and make your changes following the instructions below
@@ -118,13 +114,13 @@ Be sure you've followed the Python virtual environment steps above and activated
 ## Command line arguments
 ```
 $ python server.py --help
+████████╗███████╗ ██████╗██╗  ██╗    ████████╗██╗   ██╗ ██████╗███████╗ ██████╗ ███╗   ██╗
+╚══██╔══╝██╔════╝██╔════╝██║  ██║    ╚══██╔══╝██║   ██║██╔════╝██╔════╝██╔═══██╗████╗  ██║
+   ██║   █████╗  ██║     ███████║       ██║   ██║   ██║██║     ███████╗██║   ██║██╔██╗ ██║
+   ██║   ██╔══╝  ██║     ██╔══██║       ██║   ██║   ██║██║     ╚════██║██║   ██║██║╚██╗██║
+   ██║   ███████╗╚██████╗██║  ██║       ██║   ╚██████╔╝╚██████╗███████║╚██████╔╝██║ ╚████║
+   ╚═╝   ╚══════╝ ╚═════╝╚═╝  ╚═╝       ╚═╝    ╚═════╝  ╚═════╝╚══════╝ ╚═════╝ ╚═╝  ╚═══╝
 
-████████╗ ██████╗██████╗       ██████╗ ██████╗ ███████╗
-╚══██╔══╝██╔════╝╚════██╗      ██╔══██╗██╔══██╗██╔════╝
-   ██║   ██║      █████╔╝█████╗██████╔╝██████╔╝███████╗
-   ██║   ██║     ██╔═══╝ ╚════╝██╔══██╗██╔══██╗╚════██║
-   ██║   ╚██████╗███████╗      ██████╔╝██████╔╝███████║
-   ╚═╝    ╚═════╝╚══════╝      ╚═════╝ ╚═════╝ ╚══════╝
 Meshtastic Version
 
 usage: server.py [-h] [--config CONFIG] [--interface-type {serial,tcp}] [--port PORT] [--host HOST] [--mqtt-topic MQTT_TOPIC]
@@ -142,16 +138,6 @@ options:
   --mqtt-topic MQTT_TOPIC, -t MQTT_TOPIC
                         MQTT topic to subscribe
 ```
-
-# Extending Functionality
-## Time
-Let's  start by adding the time Functionality. We'll need to update three files:
-- **config.ini**
-- **message_processing.py**
-- **command_handlers.py**
-I have placed examples of the code in the examples folder.
-## Sunrise and Sunset 
-Example in folder
 
 
 ## Automatically run at boot
