@@ -12,7 +12,9 @@ from command_handlers import (
     handle_sunmoon_command, handle_dictionary_command, handle_dictionary_steps,
     handle_adsb_command, handle_adsb_steps, handle_ollama_command, handle_ollama_steps,
     handle_wx_command, handle_wx_steps, handle_tictactoe_command, handle_tictactoe_steps,
-    handle_tictactoe_move_command
+    handle_tictactoe_move_command, handle_hangman_command, handle_hangman_steps,
+    handle_hangman_guess_command, handle_connect4_command, handle_connect4_steps,
+    handle_connect4_move_command
 )
 from db_operations import add_bulletin, add_mail, delete_bulletin, delete_mail, get_db_connection, add_channel
 from js8call_integration import handle_js8call_command, handle_js8call_steps, handle_group_message_selection
@@ -37,7 +39,8 @@ bbs_menu_handlers = {
 
 games_menu_handlers = {
     "t": handle_tictactoe_command,
-    "b": handle_help_command,
+    "h": handle_hangman_command,
+    "c": handle_connect4_command,
     "x": handle_help_command
 }
 
@@ -120,6 +123,10 @@ def process_message(sender_id, message, interface, is_sync_message=False):
             handle_send_mail_command(sender_id, message_lower, interface, bbs_nodes)
         elif message_lower.startswith("ttt,,"):
             handle_tictactoe_move_command(sender_id, message_lower, interface)
+        elif message_lower.startswith("hang,,"):
+            handle_hangman_guess_command(sender_id, message_lower, interface)
+        elif message_lower.startswith("c4,,"):
+            handle_connect4_move_command(sender_id, message_lower, interface)
         elif message_lower.startswith("cm"):
             handle_check_mail_command(sender_id, interface)
         elif message_lower.startswith("pb,,"):
@@ -137,6 +144,29 @@ def process_message(sender_id, message, interface, is_sync_message=False):
                 handle_help_command(sender_id, interface)
             return
         else:
+            if message_lower == 'back':
+                if state and state.get('command') == 'MENU':
+                    handle_help_command(sender_id, interface)
+                    return
+                if state and state.get('command') in [
+                    'MAIL', 'BULLETIN_MENU', 'CHANNEL_DIRECTORY', 'BULLETIN', 'BULLETIN_ACTION',
+                    'BULLETIN_READ', 'BULLETIN_POST', 'BULLETIN_POST_CONTENT', 'CHECK_MAIL',
+                    'CHECK_BULLETIN', 'CHECK_CHANNEL', 'LIST_CHANNELS'
+                ]:
+                    handle_help_command(sender_id, interface, 'bbs')
+                    return
+                if state and state.get('command') in ['STATS', 'DICTIONARY', 'ADSB', 'OLLAMA', 'WX']:
+                    handle_help_command(sender_id, interface, 'utilities')
+                    return
+                if state and state.get('command') in ['TICTACTOE']:
+                    handle_help_command(sender_id, interface, 'games')
+                    return
+                if state and state.get('command') in ['HANGMAN', 'CONNECT4']:
+                    handle_help_command(sender_id, interface, 'games')
+                    return
+                handle_help_command(sender_id, interface)
+                return
+
             if state and state['command'] == 'MENU':
                 menu_name = state['menu']
                 if menu_name == 'bbs':
@@ -192,6 +222,10 @@ def process_message(sender_id, message, interface, is_sync_message=False):
                     handle_wx_steps(sender_id, message, step, state, interface)
                 elif command == 'TICTACTOE':
                     handle_tictactoe_steps(sender_id, message, step, state, interface, bbs_nodes)
+                elif command == 'HANGMAN':
+                    handle_hangman_steps(sender_id, message, step, state, interface, bbs_nodes)
+                elif command == 'CONNECT4':
+                    handle_connect4_steps(sender_id, message, step, state, interface, bbs_nodes)
                 elif command == 'CHECK_MAIL':
                     if step == 1:
                         handle_read_mail_command(sender_id, message, state, interface)
