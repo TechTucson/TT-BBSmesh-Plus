@@ -45,7 +45,10 @@ def build_menu(items, menu_name):
         if item.strip() == 'Q':
             menu_str += "[Q]uick Commands\n"
         elif item.strip() == 'B':
-            menu_str += "[B]BS\n"
+            if menu_name == "💾TC² BBS💾":
+                menu_str += "[B]BS\n"
+            else:
+                menu_str += "[B]ack\n"
         elif item.strip() == 'U':
             menu_str += "[U]tilities\n"
         elif item.strip() == 'G':
@@ -54,6 +57,8 @@ def build_menu(items, menu_name):
             menu_str += "E[X]IT\n"
         elif item.strip() == 'M':
             menu_str += "[M]ail\n"
+        elif item.strip() == 'L':
+            menu_str += "Bu[L]letins\n"
         elif item.strip() == 'C':
             menu_str += "[C]hannel Dir\n"
         elif item.strip() == 'J':
@@ -91,7 +96,6 @@ def handle_help_command(sender_id, interface, menu_name=None):
             response = build_menu(utilities_menu_items, "🛠️Utilities Menu🛠️")
         elif menu_name == 'games':
             response = build_menu(games_menu_items, "🎮Games Menu🎮")
-        response = f"{response}Type BACK to return."
     else:
         update_user_state(sender_id, {'command': 'MAIN_MENU', 'step': 1})  # Reset to main menu state
         response = build_menu(main_menu_items, "💾TC² BBS💾")
@@ -106,14 +110,14 @@ def get_node_name(node_id, interface):
 
 
 def handle_mail_command(sender_id, interface):
-    response = "✉️Mail Menu✉️\nWhat would you like to do with mail?\n[R]ead  [S]end\nType BACK to return."
+    response = "✉️Mail Menu✉️\nWhat would you like to do with mail?\n[R]ead  [S]end  [B]ack"
     send_message(response, sender_id, interface)
     update_user_state(sender_id, {'command': 'MAIL', 'step': 1})
 
 
 
 def handle_bulletin_command(sender_id, interface):
-    response = "📰Bulletin Menu📰\nWhich board would you like to enter?\n[G]eneral  [I]nfo  [N]ews  [U]rgent\nType BACK to return."
+    response = "📰Bulletin Menu📰\nWhich board would you like to enter?\n[G]eneral  [I]nfo  [N]ews  [U]rgent  [B]ack"
     send_message(response, sender_id, interface)
     update_user_state(sender_id, {'command': 'BULLETIN_MENU', 'step': 1})
 
@@ -124,7 +128,7 @@ def handle_exit_command(sender_id, interface):
 
 
 def handle_stats_command(sender_id, interface):
-    response = "📊Stats Menu📊\nWhat stats would you like to view?\n[N]odes  [H]ardware  [R]oles\nType BACK to return."
+    response = "📊Stats Menu📊\nWhat stats would you like to view?\n[N]odes  [H]ardware  [R]oles  [B]ack"
     send_message(response, sender_id, interface)
     update_user_state(sender_id, {'command': 'STATS', 'step': 1})
 
@@ -150,6 +154,9 @@ def handle_stats_steps(sender_id, message, step, interface):
 
     if step == 1:
         choice = message
+        if choice in {'b', 'back'}:
+            handle_help_command(sender_id, interface, 'utilities')
+            return
         if choice == 'x':
             handle_help_command(sender_id, interface)
             return
@@ -267,6 +274,9 @@ def handle_mail_steps(sender_id, message, step, state, interface, bbs_nodes):
 
     if step == 1:
         choice = message
+        if choice in {'b', 'back'}:
+            handle_help_command(sender_id, interface, 'bbs')
+            return
         if choice == 'r':
             sender_node_id = get_node_id_from_num(sender_id, interface)
             mail = get_mail(sender_node_id)
@@ -387,7 +397,7 @@ def handle_wall_of_shame_command(sender_id, interface):
 
 
 def handle_channel_directory_command(sender_id, interface):
-    response = "📚CHANNEL DIRECTORY📚\nWhat would you like to do?\n[V]iew  [P]ost\nType BACK to return."
+    response = "📚CHANNEL DIRECTORY📚\nWhat would you like to do?\n[V]iew  [P]ost  [B]ack"
     send_message(response, sender_id, interface)
     update_user_state(sender_id, {'command': 'CHANNEL_DIRECTORY', 'step': 1})
 
@@ -399,6 +409,9 @@ def handle_channel_directory_steps(sender_id, message, step, state, interface):
 
     if step == 1:
         choice = message
+        if choice in {'b', 'back'}:
+            handle_help_command(sender_id, interface, 'bbs')
+            return
         if choice == 'x':
             handle_help_command(sender_id, interface)
             return
@@ -493,7 +506,7 @@ def create_tictactoe_game_for_players(sender_id, opponent_id, interface, bbs_nod
 
 
 def handle_tictactoe_command(sender_id, interface):
-    response = "❌⭕ Tic Tac Toe ❌⭕\n[N]ew Game  [M]ake Move  [V]iew Game\nType BACK to return."
+    response = "❌⭕ Tic Tac Toe ❌⭕\n[N]ew Game  [M]ake Move  [V]iew Game  [B]ack"
     send_message(response, sender_id, interface)
     update_user_state(sender_id, {'command': 'TICTACTOE', 'step': 1})
 
@@ -560,6 +573,9 @@ def handle_tictactoe_steps(sender_id, message, step, state, interface, bbs_nodes
         message = message[0]
 
     if step == 1:
+        if message in {'b', 'back'}:
+            handle_help_command(sender_id, interface, 'games')
+            return
         if message == 'n':
             send_message("Enter the short name of your opponent:", sender_id, interface)
             update_user_state(sender_id, {'command': 'TICTACTOE', 'step': 2})
