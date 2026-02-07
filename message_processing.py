@@ -11,7 +11,8 @@ from command_handlers import (
     handle_post_channel_command, handle_list_channels_command, handle_quick_help_command, handle_time_command,
     handle_sunmoon_command, handle_dictionary_command, handle_dictionary_steps,
     handle_adsb_command, handle_adsb_steps, handle_ollama_command, handle_ollama_steps,
-    handle_wx_command, handle_wx_steps
+    handle_wx_command, handle_wx_steps, handle_tictactoe_command, handle_tictactoe_steps,
+    handle_tictactoe_move_command
 )
 from db_operations import add_bulletin, add_mail, delete_bulletin, delete_mail, get_db_connection, add_channel
 from js8call_integration import handle_js8call_command, handle_js8call_steps, handle_group_message_selection
@@ -21,23 +22,31 @@ main_menu_handlers = {
     "q": handle_quick_help_command,
     "b": lambda sender_id, interface: handle_help_command(sender_id, interface, 'bbs'),
     "u": lambda sender_id, interface: handle_help_command(sender_id, interface, 'utilities'),
+    "g": lambda sender_id, interface: handle_help_command(sender_id, interface, 'games'),
     "x": handle_help_command
 }
 
 bbs_menu_handlers = {
     "m": handle_mail_command,
-    "b": handle_bulletin_command,
+    "l": handle_bulletin_command,
+    "b": handle_help_command,
     "c": handle_channel_directory_command,
     "j": handle_js8call_command,
     "x": handle_help_command
 }
 
+games_menu_handlers = {
+    "t": handle_tictactoe_command,
+    "b": handle_help_command,
+    "x": handle_help_command
+}
 
 utilities_menu_handlers = {
     "s": handle_stats_command,
     "f": handle_fortune_command,
     "w": handle_wall_of_shame_command,
     "x": handle_help_command,
+    "b": handle_help_command,
     "t": handle_time_command,
     "n": handle_sunmoon_command,
     "5": handle_sunmoon_command,
@@ -61,6 +70,7 @@ bulletin_menu_handlers = {
     "i": lambda sender_id, interface: handle_bb_steps(sender_id, '1', 1, {'board': 'Info'}, interface, None),
     "n": lambda sender_id, interface: handle_bb_steps(sender_id, '2', 1, {'board': 'News'}, interface, None),
     "u": lambda sender_id, interface: handle_bb_steps(sender_id, '3', 1, {'board': 'Urgent'}, interface, None),
+    "b": lambda sender_id, interface: handle_help_command(sender_id, interface, 'bbs'),
     "x": handle_help_command
 }
 
@@ -108,6 +118,8 @@ def process_message(sender_id, message, interface, is_sync_message=False):
     else:
         if message_lower.startswith("sm,,"):
             handle_send_mail_command(sender_id, message_lower, interface, bbs_nodes)
+        elif message_lower.startswith("ttt,,"):
+            handle_tictactoe_move_command(sender_id, message_lower, interface)
         elif message_lower.startswith("cm"):
             handle_check_mail_command(sender_id, interface)
         elif message_lower.startswith("pb,,"):
@@ -118,6 +130,12 @@ def process_message(sender_id, message, interface, is_sync_message=False):
             handle_post_channel_command(sender_id, message_lower, interface)
         elif message_lower.startswith("chl"):
             handle_list_channels_command(sender_id, interface)
+        elif message_lower == "back":
+            if state and state['command'] == 'BULLETIN_MENU':
+                handle_help_command(sender_id, interface, 'bbs')
+            else:
+                handle_help_command(sender_id, interface)
+            return
         else:
             if state and state['command'] == 'MENU':
                 menu_name = state['menu']
@@ -125,6 +143,8 @@ def process_message(sender_id, message, interface, is_sync_message=False):
                     handlers = bbs_menu_handlers
                 elif menu_name == 'utilities':
                     handlers = utilities_menu_handlers
+                elif menu_name == 'games':
+                    handlers = games_menu_handlers
                 else:
                     handlers = main_menu_handlers
             elif state and state['command'] == 'BULLETIN_MENU':
@@ -170,6 +190,8 @@ def process_message(sender_id, message, interface, is_sync_message=False):
                     handle_ollama_steps(sender_id, message, step, state, interface)
                 elif command == 'WX':
                     handle_wx_steps(sender_id, message, step, state, interface)
+                elif command == 'TICTACTOE':
+                    handle_tictactoe_steps(sender_id, message, step, state, interface, bbs_nodes)
                 elif command == 'CHECK_MAIL':
                     if step == 1:
                         handle_read_mail_command(sender_id, message, state, interface)
