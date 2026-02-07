@@ -48,6 +48,16 @@ def initialize_database():
                     name TEXT NOT NULL,
                     url TEXT NOT NULL
                 );''')
+    c.execute('''CREATE TABLE IF NOT EXISTS tictactoe_games (
+                    game_id TEXT PRIMARY KEY,
+                    player_x TEXT NOT NULL,
+                    player_o TEXT NOT NULL,
+                    board TEXT NOT NULL,
+                    next_turn TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    winner TEXT,
+                    created_at TEXT NOT NULL
+                );''')
     conn.commit()
     print("Database schema initialized.")
 
@@ -164,3 +174,39 @@ def get_sender_id_by_mail_id(mail_id):
     if result:
         return result[0]
     return None
+
+
+def create_tictactoe_game(player_x, player_o):
+    conn = get_db_connection()
+    c = conn.cursor()
+    game_id = str(uuid.uuid4())
+    board = "---------"
+    created_at = datetime.now().strftime('%Y-%m-%d %H:%M')
+    c.execute(
+        "INSERT INTO tictactoe_games (game_id, player_x, player_o, board, next_turn, status, winner, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (game_id, player_x, player_o, board, "X", "active", None, created_at)
+    )
+    conn.commit()
+    return game_id
+
+
+def get_tictactoe_game(game_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "SELECT game_id, player_x, player_o, board, next_turn, status, winner "
+        "FROM tictactoe_games WHERE game_id = ?",
+        (game_id,)
+    )
+    return c.fetchone()
+
+
+def update_tictactoe_game(game_id, board, next_turn, status, winner):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "UPDATE tictactoe_games SET board = ?, next_turn = ?, status = ?, winner = ? WHERE game_id = ?",
+        (board, next_turn, status, winner, game_id)
+    )
+    conn.commit()
