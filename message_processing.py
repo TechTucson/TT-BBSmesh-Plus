@@ -35,7 +35,8 @@ main_menu_handlers = {
 
 bbs_menu_handlers = {
     "m": handle_mail_command,
-    "b": handle_bulletin_command,
+    "l": handle_bulletin_command,
+    "b": handle_help_command,
     "c": handle_channel_directory_command,
     "j": handle_js8call_command,
     "x": handle_help_command
@@ -58,6 +59,7 @@ utilities_menu_handlers = {
     "f": handle_fortune_command,
     "w": handle_wall_of_shame_command,
     "x": handle_help_command,
+    "b": handle_help_command,
     "t": handle_time_command,
     "n": handle_sunmoon_command,
     "5": handle_sunmoon_command,
@@ -81,6 +83,7 @@ bulletin_menu_handlers = {
     "i": lambda sender_id, interface: handle_bb_steps(sender_id, '1', 1, {'board': 'Info'}, interface, None),
     "n": lambda sender_id, interface: handle_bb_steps(sender_id, '2', 1, {'board': 'News'}, interface, None),
     "u": lambda sender_id, interface: handle_bb_steps(sender_id, '3', 1, {'board': 'Urgent'}, interface, None),
+    "b": lambda sender_id, interface: handle_help_command(sender_id, interface, 'bbs'),
     "x": handle_help_command
 }
 
@@ -156,6 +159,12 @@ def process_message(sender_id, message, interface, is_sync_message=False):
             handle_post_channel_command(sender_id, message_lower, interface)
         elif message_lower.startswith("chl"):
             handle_list_channels_command(sender_id, interface)
+        elif message_lower == "back":
+            if state and state['command'] == 'BULLETIN_MENU':
+                handle_help_command(sender_id, interface, 'bbs')
+            else:
+                handle_help_command(sender_id, interface)
+            return
         else:
             if message_lower == 'back':
                 if state and state.get('command') == 'MENU':
