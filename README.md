@@ -24,7 +24,11 @@ While TC²-BBS forms the core of this work, the original inspiration actually ca
   - Added a Local LLM using Ollama
     - Take a Look here: Coming Soon
   - Added a Weather Tool This takes audio from National Weather Forecast and SAFE Creates Text, Exposes that text and is presented to the user. 
-    - Take a Look here: Coming Soon  
+    - Take a Look here: Coming Soon
+   
+## Added Games
+- Tic Tac Toe
+
 ## Upcoming Enhancements
   - Adding some sort of APRS Functionality
 
@@ -174,6 +178,7 @@ A video of it in use is available on our YouTube channel:
 ## License
 
 GNU General Public License v3.0
+
 
 
 
