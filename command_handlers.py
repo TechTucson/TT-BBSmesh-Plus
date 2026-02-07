@@ -47,7 +47,10 @@ def build_menu(items, menu_name):
         if item.strip() == 'Q':
             menu_str += "[Q]uick Commands\n"
         elif item.strip() == 'B':
-            menu_str += "[B]BS\n"
+            if menu_name == "💾TC² BBS💾":
+                menu_str += "[B]BS\n"
+            else:
+                menu_str += "[B]ack\n"
         elif item.strip() == 'U':
             menu_str += "[U]tilities\n"
         elif item.strip() == 'G':
@@ -56,6 +59,8 @@ def build_menu(items, menu_name):
             menu_str += "E[X]IT\n"
         elif item.strip() == 'M':
             menu_str += "[M]ail\n"
+        elif item.strip() == 'L':
+            menu_str += "Bu[L]letins\n"
         elif item.strip() == 'C':
             if "Games" in menu_name:
                 menu_str += "[C]onnect Four\n"
@@ -158,6 +163,9 @@ def handle_stats_steps(sender_id, message, step, interface):
 
     if step == 1:
         choice = message
+        if choice in {'b', 'back'}:
+            handle_help_command(sender_id, interface, 'utilities')
+            return
         if choice == 'x':
             handle_help_command(sender_id, interface)
             return
@@ -275,6 +283,9 @@ def handle_mail_steps(sender_id, message, step, state, interface, bbs_nodes):
 
     if step == 1:
         choice = message
+        if choice in {'b', 'back'}:
+            handle_help_command(sender_id, interface, 'bbs')
+            return
         if choice == 'r':
             sender_node_id = get_node_id_from_num(sender_id, interface)
             mail = get_mail(sender_node_id)
@@ -407,6 +418,9 @@ def handle_channel_directory_steps(sender_id, message, step, state, interface):
 
     if step == 1:
         choice = message
+        if choice in {'b', 'back'}:
+            handle_help_command(sender_id, interface, 'bbs')
+            return
         if choice == 'x':
             handle_help_command(sender_id, interface)
             return
