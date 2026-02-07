@@ -16,7 +16,7 @@ def get_docker_logs(container_name="readsb3"):
     """Capture docker logs in memory as a list of lines"""
     try:
         result = subprocess.run(
-            ["sudo", "docker", "logs", container_name],
+            ["docker", "logs", container_name],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
