@@ -48,6 +48,36 @@ def initialize_database():
                     name TEXT NOT NULL,
                     url TEXT NOT NULL
                 );''')
+    c.execute('''CREATE TABLE IF NOT EXISTS tictactoe_games (
+                    game_id TEXT PRIMARY KEY,
+                    player_x TEXT NOT NULL,
+                    player_o TEXT NOT NULL,
+                    board TEXT NOT NULL,
+                    next_turn TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    winner TEXT,
+                    created_at TEXT NOT NULL
+                );''')
+    c.execute('''CREATE TABLE IF NOT EXISTS hangman_games (
+                    game_id TEXT PRIMARY KEY,
+                    player_setter TEXT NOT NULL,
+                    player_guesser TEXT NOT NULL,
+                    secret_word TEXT NOT NULL,
+                    guessed_letters TEXT NOT NULL,
+                    attempts_left INTEGER NOT NULL,
+                    status TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );''')
+    c.execute('''CREATE TABLE IF NOT EXISTS connect4_games (
+                    game_id TEXT PRIMARY KEY,
+                    player_r TEXT NOT NULL,
+                    player_y TEXT NOT NULL,
+                    board TEXT NOT NULL,
+                    next_turn TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    winner TEXT,
+                    created_at TEXT NOT NULL
+                );''')
     conn.commit()
     print("Database schema initialized.")
 
@@ -164,3 +194,110 @@ def get_sender_id_by_mail_id(mail_id):
     if result:
         return result[0]
     return None
+
+
+def create_tictactoe_game(player_x, player_o):
+    conn = get_db_connection()
+    c = conn.cursor()
+    game_id = str(uuid.uuid4())
+    board = "---------"
+    created_at = datetime.now().strftime('%Y-%m-%d %H:%M')
+    c.execute(
+        "INSERT INTO tictactoe_games (game_id, player_x, player_o, board, next_turn, status, winner, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (game_id, player_x, player_o, board, "X", "active", None, created_at)
+    )
+    conn.commit()
+    return game_id
+
+
+def get_tictactoe_game(game_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "SELECT game_id, player_x, player_o, board, next_turn, status, winner "
+        "FROM tictactoe_games WHERE game_id = ?",
+        (game_id,)
+    )
+    return c.fetchone()
+
+
+def update_tictactoe_game(game_id, board, next_turn, status, winner):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "UPDATE tictactoe_games SET board = ?, next_turn = ?, status = ?, winner = ? WHERE game_id = ?",
+        (board, next_turn, status, winner, game_id)
+    )
+    conn.commit()
+
+
+def create_hangman_game(player_setter, player_guesser, secret_word):
+    conn = get_db_connection()
+    c = conn.cursor()
+    game_id = str(uuid.uuid4())
+    created_at = datetime.now().strftime('%Y-%m-%d %H:%M')
+    c.execute(
+        "INSERT INTO hangman_games (game_id, player_setter, player_guesser, secret_word, guessed_letters, attempts_left, status, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (game_id, player_setter, player_guesser, secret_word, "", 6, "active", created_at)
+    )
+    conn.commit()
+    return game_id
+
+
+def get_hangman_game(game_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "SELECT game_id, player_setter, player_guesser, secret_word, guessed_letters, attempts_left, status "
+        "FROM hangman_games WHERE game_id = ?",
+        (game_id,)
+    )
+    return c.fetchone()
+
+
+def update_hangman_game(game_id, guessed_letters, attempts_left, status):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "UPDATE hangman_games SET guessed_letters = ?, attempts_left = ?, status = ? WHERE game_id = ?",
+        (guessed_letters, attempts_left, status, game_id)
+    )
+    conn.commit()
+
+
+def create_connect4_game(player_r, player_y):
+    conn = get_db_connection()
+    c = conn.cursor()
+    game_id = str(uuid.uuid4())
+    board = "-" * 42
+    created_at = datetime.now().strftime('%Y-%m-%d %H:%M')
+    c.execute(
+        "INSERT INTO connect4_games (game_id, player_r, player_y, board, next_turn, status, winner, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (game_id, player_r, player_y, board, "R", "active", None, created_at)
+    )
+    conn.commit()
+    return game_id
+
+
+def get_connect4_game(game_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "SELECT game_id, player_r, player_y, board, next_turn, status, winner "
+        "FROM connect4_games WHERE game_id = ?",
+        (game_id,)
+    )
+    return c.fetchone()
+
+
+def update_connect4_game(game_id, board, next_turn, status, winner):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "UPDATE connect4_games SET board = ?, next_turn = ?, status = ?, winner = ? WHERE game_id = ?",
+        (board, next_turn, status, winner, game_id)
+    )
+    conn.commit()
