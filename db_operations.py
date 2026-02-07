@@ -78,6 +78,59 @@ def initialize_database():
                     winner TEXT,
                     created_at TEXT NOT NULL
                 );''')
+    c.execute('''CREATE TABLE IF NOT EXISTS mastermind_games (
+                    game_id TEXT PRIMARY KEY,
+                    player_setter TEXT NOT NULL,
+                    player_guesser TEXT NOT NULL,
+                    secret_code TEXT NOT NULL,
+                    guesses TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    last_feedback TEXT,
+                    created_at TEXT NOT NULL
+                );''')
+    c.execute('''CREATE TABLE IF NOT EXISTS battleship_games (
+                    game_id TEXT PRIMARY KEY,
+                    player1 TEXT NOT NULL,
+                    player2 TEXT NOT NULL,
+                    p1_ships TEXT,
+                    p2_ships TEXT,
+                    p1_hits TEXT NOT NULL,
+                    p2_hits TEXT NOT NULL,
+                    next_turn TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );''')
+    c.execute('''CREATE TABLE IF NOT EXISTS word_chain_games (
+                    game_id TEXT PRIMARY KEY,
+                    player1 TEXT NOT NULL,
+                    player2 TEXT NOT NULL,
+                    current_word TEXT NOT NULL,
+                    used_words TEXT NOT NULL,
+                    next_turn TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );''')
+    c.execute('''CREATE TABLE IF NOT EXISTS trivia_games (
+                    game_id TEXT PRIMARY KEY,
+                    player1 TEXT NOT NULL,
+                    player2 TEXT NOT NULL,
+                    question TEXT NOT NULL,
+                    answer TEXT NOT NULL,
+                    p1_response TEXT,
+                    p2_response TEXT,
+                    status TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );''')
+    c.execute('''CREATE TABLE IF NOT EXISTS boardgame_matches (
+                    game_id TEXT PRIMARY KEY,
+                    game_type TEXT NOT NULL,
+                    player1 TEXT NOT NULL,
+                    player2 TEXT NOT NULL,
+                    moves TEXT NOT NULL,
+                    next_turn TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );''')
     conn.commit()
     print("Database schema initialized.")
 
@@ -299,5 +352,181 @@ def update_connect4_game(game_id, board, next_turn, status, winner):
     c.execute(
         "UPDATE connect4_games SET board = ?, next_turn = ?, status = ?, winner = ? WHERE game_id = ?",
         (board, next_turn, status, winner, game_id)
+    )
+    conn.commit()
+
+
+def create_mastermind_game(player_setter, player_guesser, secret_code):
+    conn = get_db_connection()
+    c = conn.cursor()
+    game_id = str(uuid.uuid4())
+    created_at = datetime.now().strftime('%Y-%m-%d %H:%M')
+    c.execute(
+        "INSERT INTO mastermind_games (game_id, player_setter, player_guesser, secret_code, guesses, status, last_feedback, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (game_id, player_setter, player_guesser, secret_code, "", "active", None, created_at)
+    )
+    conn.commit()
+    return game_id
+
+
+def get_mastermind_game(game_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "SELECT game_id, player_setter, player_guesser, secret_code, guesses, status, last_feedback "
+        "FROM mastermind_games WHERE game_id = ?",
+        (game_id,)
+    )
+    return c.fetchone()
+
+
+def update_mastermind_game(game_id, guesses, status, last_feedback):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "UPDATE mastermind_games SET guesses = ?, status = ?, last_feedback = ? WHERE game_id = ?",
+        (guesses, status, last_feedback, game_id)
+    )
+    conn.commit()
+
+
+def create_battleship_game(player1, player2, p1_ships):
+    conn = get_db_connection()
+    c = conn.cursor()
+    game_id = str(uuid.uuid4())
+    created_at = datetime.now().strftime('%Y-%m-%d %H:%M')
+    c.execute(
+        "INSERT INTO battleship_games (game_id, player1, player2, p1_ships, p2_ships, p1_hits, p2_hits, next_turn, status, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (game_id, player1, player2, p1_ships, None, "", "", "P1", "waiting_for_opponent", created_at)
+    )
+    conn.commit()
+    return game_id
+
+
+def get_battleship_game(game_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "SELECT game_id, player1, player2, p1_ships, p2_ships, p1_hits, p2_hits, next_turn, status "
+        "FROM battleship_games WHERE game_id = ?",
+        (game_id,)
+    )
+    return c.fetchone()
+
+
+def update_battleship_game(game_id, p1_ships, p2_ships, p1_hits, p2_hits, next_turn, status):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "UPDATE battleship_games SET p1_ships = ?, p2_ships = ?, p1_hits = ?, p2_hits = ?, next_turn = ?, status = ? "
+        "WHERE game_id = ?",
+        (p1_ships, p2_ships, p1_hits, p2_hits, next_turn, status, game_id)
+    )
+    conn.commit()
+
+
+def create_word_chain_game(player1, player2, start_word):
+    conn = get_db_connection()
+    c = conn.cursor()
+    game_id = str(uuid.uuid4())
+    created_at = datetime.now().strftime('%Y-%m-%d %H:%M')
+    c.execute(
+        "INSERT INTO word_chain_games (game_id, player1, player2, current_word, used_words, next_turn, status, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (game_id, player1, player2, start_word, start_word, "P2", "active", created_at)
+    )
+    conn.commit()
+    return game_id
+
+
+def get_word_chain_game(game_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "SELECT game_id, player1, player2, current_word, used_words, next_turn, status "
+        "FROM word_chain_games WHERE game_id = ?",
+        (game_id,)
+    )
+    return c.fetchone()
+
+
+def update_word_chain_game(game_id, current_word, used_words, next_turn, status):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "UPDATE word_chain_games SET current_word = ?, used_words = ?, next_turn = ?, status = ? WHERE game_id = ?",
+        (current_word, used_words, next_turn, status, game_id)
+    )
+    conn.commit()
+
+
+def create_trivia_game(player1, player2, question, answer):
+    conn = get_db_connection()
+    c = conn.cursor()
+    game_id = str(uuid.uuid4())
+    created_at = datetime.now().strftime('%Y-%m-%d %H:%M')
+    c.execute(
+        "INSERT INTO trivia_games (game_id, player1, player2, question, answer, p1_response, p2_response, status, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (game_id, player1, player2, question, answer, None, None, "active", created_at)
+    )
+    conn.commit()
+    return game_id
+
+
+def get_trivia_game(game_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "SELECT game_id, player1, player2, question, answer, p1_response, p2_response, status "
+        "FROM trivia_games WHERE game_id = ?",
+        (game_id,)
+    )
+    return c.fetchone()
+
+
+def update_trivia_game(game_id, p1_response, p2_response, status):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "UPDATE trivia_games SET p1_response = ?, p2_response = ?, status = ? WHERE game_id = ?",
+        (p1_response, p2_response, status, game_id)
+    )
+    conn.commit()
+
+
+def create_boardgame_match(game_type, player1, player2):
+    conn = get_db_connection()
+    c = conn.cursor()
+    game_id = str(uuid.uuid4())
+    created_at = datetime.now().strftime('%Y-%m-%d %H:%M')
+    c.execute(
+        "INSERT INTO boardgame_matches (game_id, game_type, player1, player2, moves, next_turn, status, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (game_id, game_type, player1, player2, "", "P1", "active", created_at)
+    )
+    conn.commit()
+    return game_id
+
+
+def get_boardgame_match(game_id):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "SELECT game_id, game_type, player1, player2, moves, next_turn, status "
+        "FROM boardgame_matches WHERE game_id = ?",
+        (game_id,)
+    )
+    return c.fetchone()
+
+
+def update_boardgame_match(game_id, moves, next_turn, status):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "UPDATE boardgame_matches SET moves = ?, next_turn = ?, status = ? WHERE game_id = ?",
+        (moves, next_turn, status, game_id)
     )
     conn.commit()
