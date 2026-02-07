@@ -14,7 +14,8 @@ from db_operations import (
     add_bulletin, add_mail, delete_mail,
     get_bulletin_content, get_bulletins,
     get_mail, get_mail_content,
-    add_channel, get_channels, get_sender_id_by_mail_id
+    add_channel, get_channels, get_sender_id_by_mail_id,
+    create_tictactoe_game, get_tictactoe_game, update_tictactoe_game
 )
 from utils import (
     get_node_id_from_num, get_node_info,
@@ -30,6 +31,7 @@ config.read('config.ini')
 main_menu_items = config['menu']['main_menu_items'].split(',')
 bbs_menu_items = config['menu']['bbs_menu_items'].split(',')
 utilities_menu_items = config['menu']['utilities_menu_items'].split(',')
+games_menu_items = config['menu'].get('games_menu_items', 'T').split(',')
 
 DICTIONARY_PATH = os.path.join('Tools', 'dictionary.json')
 _dictionary_cache = None
@@ -46,6 +48,8 @@ def build_menu(items, menu_name):
             menu_str += "[B]BS\n"
         elif item.strip() == 'U':
             menu_str += "[U]tilities\n"
+        elif item.strip() == 'G':
+            menu_str += "[G]ames\n"
         elif item.strip() == 'X':
             menu_str += "E[X]IT\n"
         elif item.strip() == 'M':
@@ -61,7 +65,10 @@ def build_menu(items, menu_name):
         elif item.strip() == 'W':
             menu_str += "[W]all of Shame [3]\n"
         elif item.strip() == 'T':
-            menu_str += "[T]ime [4]\n"
+            if "Games" in menu_name:
+                menu_str += "[T]ic Tac Toe\n"
+            else:
+                menu_str += "[T]ime [4]\n"
         elif item.strip() == 'N':
             menu_str += "Su[N]Moon [5]\n"
         elif item.strip() == 'D':
@@ -82,6 +89,9 @@ def handle_help_command(sender_id, interface, menu_name=None):
             response = build_menu(bbs_menu_items, "📰BBS Menu📰")
         elif menu_name == 'utilities':
             response = build_menu(utilities_menu_items, "🛠️Utilities Menu🛠️")
+        elif menu_name == 'games':
+            response = build_menu(games_menu_items, "🎮Games Menu🎮")
+        response = f"{response}Type BACK to return."
     else:
         update_user_state(sender_id, {'command': 'MAIN_MENU', 'step': 1})  # Reset to main menu state
         response = build_menu(main_menu_items, "💾TC² BBS💾")
@@ -96,14 +106,14 @@ def get_node_name(node_id, interface):
 
 
 def handle_mail_command(sender_id, interface):
-    response = "✉️Mail Menu✉️\nWhat would you like to do with mail?\n[R]ead  [S]end E[X]IT"
+    response = "✉️Mail Menu✉️\nWhat would you like to do with mail?\n[R]ead  [S]end\nType BACK to return."
     send_message(response, sender_id, interface)
     update_user_state(sender_id, {'command': 'MAIL', 'step': 1})
 
 
 
 def handle_bulletin_command(sender_id, interface):
-    response = "📰Bulletin Menu📰\nWhich board would you like to enter?\n[G]eneral  [I]nfo  [N]ews  [U]rgent"
+    response = "📰Bulletin Menu📰\nWhich board would you like to enter?\n[G]eneral  [I]nfo  [N]ews  [U]rgent\nType BACK to return."
     send_message(response, sender_id, interface)
     update_user_state(sender_id, {'command': 'BULLETIN_MENU', 'step': 1})
 
@@ -114,7 +124,7 @@ def handle_exit_command(sender_id, interface):
 
 
 def handle_stats_command(sender_id, interface):
-    response = "📊Stats Menu📊\nWhat stats would you like to view?\n[N]odes  [H]ardware  [R]oles  E[X]IT"
+    response = "📊Stats Menu📊\nWhat stats would you like to view?\n[N]odes  [H]ardware  [R]oles\nType BACK to return."
     send_message(response, sender_id, interface)
     update_user_state(sender_id, {'command': 'STATS', 'step': 1})
 
@@ -377,7 +387,7 @@ def handle_wall_of_shame_command(sender_id, interface):
 
 
 def handle_channel_directory_command(sender_id, interface):
-    response = "📚CHANNEL DIRECTORY📚\nWhat would you like to do?\n[V]iew  [P]ost  E[X]IT"
+    response = "📚CHANNEL DIRECTORY📚\nWhat would you like to do?\n[V]iew  [P]ost\nType BACK to return."
     send_message(response, sender_id, interface)
     update_user_state(sender_id, {'command': 'CHANNEL_DIRECTORY', 'step': 1})
 
@@ -425,6 +435,201 @@ def handle_channel_directory_steps(sender_id, message, step, state, interface):
         add_channel(channel_name, channel_url)
         send_message(f"Your channel '{channel_name}' has been added to the directory.", sender_id, interface)
         handle_channel_directory_command(sender_id, interface)
+
+
+def format_tictactoe_board(board):
+    cells = []
+    for i, cell in enumerate(board):
+        cells.append(str(i + 1) if cell == '-' else cell)
+    rows = [" | ".join(cells[i:i + 3]) for i in range(0, 9, 3)]
+    return "\n---------\n".join(rows)
+
+
+def check_tictactoe_winner(board):
+    winning_lines = [
+        (0, 1, 2), (3, 4, 5), (6, 7, 8),
+        (0, 3, 6), (1, 4, 7), (2, 5, 8),
+        (0, 4, 8), (2, 4, 6)
+    ]
+    for a, b, c in winning_lines:
+        if board[a] != '-' and board[a] == board[b] == board[c]:
+            return board[a]
+    return None
+
+
+def send_tictactoe_status(recipient_id, interface, game_id, board, next_turn, status, winner):
+    board_display = format_tictactoe_board(board)
+    if status == 'won':
+        status_line = f"Game over! {winner} wins."
+    elif status == 'draw':
+        status_line = "Game over! It's a draw."
+    else:
+        status_line = f"Next turn: {next_turn}"
+    message = f"❌⭕ Tic Tac Toe ❌⭕\nGame ID: {game_id}\n{board_display}\n{status_line}"
+    send_message(message, recipient_id, interface)
+
+
+def create_tictactoe_game_for_players(sender_id, opponent_id, interface, bbs_nodes):
+    sender_node_id = get_node_id_from_num(sender_id, interface)
+    game_id = create_tictactoe_game(sender_node_id, opponent_id)
+    board = "---------"
+    send_tictactoe_status(sender_id, interface, game_id, board, "X", "active", None)
+
+    sender_short_name = get_node_short_name(sender_node_id, interface)
+    opponent_name = get_node_name(opponent_id, interface)
+    mail_subject = f"Tic Tac Toe Game {game_id}"
+    mail_content = (
+        f"{sender_short_name} invited you to Tic Tac Toe!\n"
+        f"Game ID: {game_id}\n"
+        f"You are O. X goes first.\n"
+        f"To make a move, reply with TTT,,{game_id},,<position> or use Games > Tic Tac Toe > Make Move.\n\n"
+        f"{format_tictactoe_board(board)}\n"
+        "Next turn: X"
+    )
+    add_mail(sender_node_id, sender_short_name, opponent_id, mail_subject, mail_content, bbs_nodes, interface)
+    notification_message = f"You have a new Tic Tac Toe invite from {sender_short_name}. Check your mailbox."
+    send_message(notification_message, opponent_id, interface)
+    send_message(f"Invite sent to {opponent_name}.", sender_id, interface)
+
+
+def handle_tictactoe_command(sender_id, interface):
+    response = "❌⭕ Tic Tac Toe ❌⭕\n[N]ew Game  [M]ake Move  [V]iew Game\nType BACK to return."
+    send_message(response, sender_id, interface)
+    update_user_state(sender_id, {'command': 'TICTACTOE', 'step': 1})
+
+
+def handle_tictactoe_move(sender_id, game_id, move, interface):
+    game = get_tictactoe_game(game_id)
+    if not game:
+        send_message("Game not found. Check the Game ID and try again.", sender_id, interface)
+        return
+
+    _, player_x, player_o, board, next_turn, status, winner = game
+    if status != 'active':
+        send_tictactoe_status(sender_id, interface, game_id, board, next_turn, status, winner)
+        return
+
+    sender_node_id = get_node_id_from_num(sender_id, interface)
+    if sender_node_id not in [player_x, player_o]:
+        send_message("You are not a player in this game.", sender_id, interface)
+        return
+
+    current_mark = 'X' if sender_node_id == player_x else 'O'
+    if current_mark != next_turn:
+        send_message(f"It is not your turn. Current turn: {next_turn}", sender_id, interface)
+        return
+
+    try:
+        position = int(move)
+    except ValueError:
+        send_message("Invalid move. Send a number between 1 and 9.", sender_id, interface)
+        return
+
+    if position < 1 or position > 9:
+        send_message("Invalid move. Choose a position between 1 and 9.", sender_id, interface)
+        return
+
+    index = position - 1
+    if board[index] != '-':
+        send_message("That position is already taken. Choose another.", sender_id, interface)
+        return
+
+    board_list = list(board)
+    board_list[index] = current_mark
+    updated_board = "".join(board_list)
+
+    winner = check_tictactoe_winner(updated_board)
+    if winner:
+        status = 'won'
+        next_turn = current_mark
+    elif '-' not in updated_board:
+        status = 'draw'
+    else:
+        next_turn = 'O' if current_mark == 'X' else 'X'
+
+    update_tictactoe_game(game_id, updated_board, next_turn, status, winner)
+
+    send_tictactoe_status(sender_id, interface, game_id, updated_board, next_turn, status, winner)
+    opponent_id = player_o if sender_node_id == player_x else player_x
+    send_tictactoe_status(opponent_id, interface, game_id, updated_board, next_turn, status, winner)
+
+
+def handle_tictactoe_steps(sender_id, message, step, state, interface, bbs_nodes):
+    message = message.lower().strip()
+    if len(message) == 2 and message[1] == 'x':
+        message = message[0]
+
+    if step == 1:
+        if message == 'n':
+            send_message("Enter the short name of your opponent:", sender_id, interface)
+            update_user_state(sender_id, {'command': 'TICTACTOE', 'step': 2})
+        elif message == 'm':
+            send_message("Enter the game ID:", sender_id, interface)
+            update_user_state(sender_id, {'command': 'TICTACTOE', 'step': 3})
+        elif message == 'v':
+            send_message("Enter the game ID to view:", sender_id, interface)
+            update_user_state(sender_id, {'command': 'TICTACTOE', 'step': 5})
+        else:
+            handle_tictactoe_command(sender_id, interface)
+
+    elif step == 2:
+        short_name = message.lower()
+        nodes = get_node_info(interface, short_name)
+        if not nodes:
+            send_message("I'm unable to find that node in my database.", sender_id, interface)
+            handle_tictactoe_command(sender_id, interface)
+        elif len(nodes) == 1:
+            opponent_id = nodes[0]['num']
+            create_tictactoe_game_for_players(sender_id, opponent_id, interface, bbs_nodes)
+            update_user_state(sender_id, None)
+        else:
+            send_message("Multiple nodes found. Choose one:", sender_id, interface)
+            for i, node in enumerate(nodes):
+                send_message(f"[{i}] {node['longName']}", sender_id, interface)
+            update_user_state(sender_id, {'command': 'TICTACTOE', 'step': 6, 'nodes': nodes})
+
+    elif step == 3:
+        game_id = message.strip()
+        send_message("Enter your move (1-9):", sender_id, interface)
+        update_user_state(sender_id, {'command': 'TICTACTOE', 'step': 4, 'game_id': game_id})
+
+    elif step == 4:
+        game_id = state['game_id']
+        handle_tictactoe_move(sender_id, game_id, message, interface)
+        update_user_state(sender_id, None)
+
+    elif step == 5:
+        game_id = message.strip()
+        game = get_tictactoe_game(game_id)
+        if not game:
+            send_message("Game not found. Check the Game ID and try again.", sender_id, interface)
+        else:
+            _, _, _, board, next_turn, status, winner = game
+            send_tictactoe_status(sender_id, interface, game_id, board, next_turn, status, winner)
+        update_user_state(sender_id, None)
+
+    elif step == 6:
+        try:
+            selected_node_index = int(message)
+        except ValueError:
+            send_message("Invalid selection. Try again.", sender_id, interface)
+            return
+        if selected_node_index < 0 or selected_node_index >= len(state['nodes']):
+            send_message("Invalid selection. Try again.", sender_id, interface)
+            return
+        selected_node = state['nodes'][selected_node_index]
+        opponent_id = selected_node['num']
+        create_tictactoe_game_for_players(sender_id, opponent_id, interface, bbs_nodes)
+        update_user_state(sender_id, None)
+
+
+def handle_tictactoe_move_command(sender_id, message, interface):
+    parts = message.split(",,", 2)
+    if len(parts) != 3:
+        send_message("Tic Tac Toe command format:\nTTT,,{game_id},,{position}", sender_id, interface)
+        return
+    _, game_id, move = parts
+    handle_tictactoe_move(sender_id, game_id, move, interface)
 
 
 def handle_send_mail_command(sender_id, message, interface, bbs_nodes):
@@ -682,8 +887,11 @@ def handle_list_channels_command(sender_id, interface):
 
 
 def handle_quick_help_command(sender_id, interface):
-    response = ("✈️QUICK COMMANDS✈️\nSend command below for usage info:\nSM,, - Send "
-                "Mail\nCM - Check Mail\nPB,, - Post Bulletin\nCB,, - Check Bulletins\n")
+    response = (
+        "✈️QUICK COMMANDS✈️\nSend command below for usage info:\n"
+        "SM,, - Send Mail\nCM - Check Mail\nPB,, - Post Bulletin\nCB,, - Check Bulletins\n"
+        "TTT,, - Tic Tac Toe Move\n"
+    )
     send_message(response, sender_id, interface)
     
 def handle_time_command(sender_id, interface, menu_name=None):
