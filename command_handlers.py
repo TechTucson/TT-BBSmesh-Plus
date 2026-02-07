@@ -15,7 +15,9 @@ from db_operations import (
     get_bulletin_content, get_bulletins,
     get_mail, get_mail_content,
     add_channel, get_channels, get_sender_id_by_mail_id,
-    create_tictactoe_game, get_tictactoe_game, update_tictactoe_game
+    create_tictactoe_game, get_tictactoe_game, update_tictactoe_game,
+    create_hangman_game, get_hangman_game, update_hangman_game,
+    create_connect4_game, get_connect4_game, update_connect4_game
 )
 from utils import (
     get_node_id_from_num, get_node_info,
@@ -60,7 +62,10 @@ def build_menu(items, menu_name):
         elif item.strip() == 'L':
             menu_str += "Bu[L]letins\n"
         elif item.strip() == 'C':
-            menu_str += "[C]hannel Dir\n"
+            if "Games" in menu_name:
+                menu_str += "[C]onnect Four\n"
+            else:
+                menu_str += "[C]hannel Dir\n"
         elif item.strip() == 'J':
             menu_str += "[J]S8CALL\n"
         elif item.strip() == 'S':
@@ -74,6 +79,11 @@ def build_menu(items, menu_name):
                 menu_str += "[T]ic Tac Toe\n"
             else:
                 menu_str += "[T]ime [4]\n"
+        elif item.strip() == 'H':
+            if "Games" in menu_name:
+                menu_str += "[H]angman\n"
+            else:
+                menu_str += "Weat[H]er (WX) [9]\n"
         elif item.strip() == 'N':
             menu_str += "Su[N]Moon [5]\n"
         elif item.strip() == 'D':
@@ -82,8 +92,6 @@ def build_menu(items, menu_name):
             menu_str += "[A]DSB [7]\n"
         elif item.strip() == 'O':
             menu_str += "[O]llama [8]\n"
-        elif item.strip() == 'H':
-            menu_str += "Weat[H]er (WX) [9]\n"
     return menu_str
 
 
@@ -96,6 +104,7 @@ def handle_help_command(sender_id, interface, menu_name=None):
             response = build_menu(utilities_menu_items, "🛠️Utilities Menu🛠️")
         elif menu_name == 'games':
             response = build_menu(games_menu_items, "🎮Games Menu🎮")
+        response = f"{response}Type BACK to return."
     else:
         update_user_state(sender_id, {'command': 'MAIN_MENU', 'step': 1})  # Reset to main menu state
         response = build_menu(main_menu_items, "💾TC² BBS💾")
@@ -110,14 +119,14 @@ def get_node_name(node_id, interface):
 
 
 def handle_mail_command(sender_id, interface):
-    response = "✉️Mail Menu✉️\nWhat would you like to do with mail?\n[R]ead  [S]end  [B]ack"
+    response = "✉️Mail Menu✉️\nWhat would you like to do with mail?\n[R]ead  [S]end\nType BACK to return."
     send_message(response, sender_id, interface)
     update_user_state(sender_id, {'command': 'MAIL', 'step': 1})
 
 
 
 def handle_bulletin_command(sender_id, interface):
-    response = "📰Bulletin Menu📰\nWhich board would you like to enter?\n[G]eneral  [I]nfo  [N]ews  [U]rgent  [B]ack"
+    response = "📰Bulletin Menu📰\nWhich board would you like to enter?\n[G]eneral  [I]nfo  [N]ews  [U]rgent\nType BACK to return."
     send_message(response, sender_id, interface)
     update_user_state(sender_id, {'command': 'BULLETIN_MENU', 'step': 1})
 
@@ -128,7 +137,7 @@ def handle_exit_command(sender_id, interface):
 
 
 def handle_stats_command(sender_id, interface):
-    response = "📊Stats Menu📊\nWhat stats would you like to view?\n[N]odes  [H]ardware  [R]oles  [B]ack"
+    response = "📊Stats Menu📊\nWhat stats would you like to view?\n[N]odes  [H]ardware  [R]oles\nType BACK to return."
     send_message(response, sender_id, interface)
     update_user_state(sender_id, {'command': 'STATS', 'step': 1})
 
@@ -397,7 +406,7 @@ def handle_wall_of_shame_command(sender_id, interface):
 
 
 def handle_channel_directory_command(sender_id, interface):
-    response = "📚CHANNEL DIRECTORY📚\nWhat would you like to do?\n[V]iew  [P]ost  [B]ack"
+    response = "📚CHANNEL DIRECTORY📚\nWhat would you like to do?\n[V]iew  [P]ost\nType BACK to return."
     send_message(response, sender_id, interface)
     update_user_state(sender_id, {'command': 'CHANNEL_DIRECTORY', 'step': 1})
 
@@ -506,7 +515,7 @@ def create_tictactoe_game_for_players(sender_id, opponent_id, interface, bbs_nod
 
 
 def handle_tictactoe_command(sender_id, interface):
-    response = "❌⭕ Tic Tac Toe ❌⭕\n[N]ew Game  [M]ake Move  [V]iew Game  [B]ack"
+    response = "❌⭕ Tic Tac Toe ❌⭕\n[N]ew Game  [M]ake Move  [V]iew Game\nType BACK to return."
     send_message(response, sender_id, interface)
     update_user_state(sender_id, {'command': 'TICTACTOE', 'step': 1})
 
@@ -573,9 +582,6 @@ def handle_tictactoe_steps(sender_id, message, step, state, interface, bbs_nodes
         message = message[0]
 
     if step == 1:
-        if message in {'b', 'back'}:
-            handle_help_command(sender_id, interface, 'games')
-            return
         if message == 'n':
             send_message("Enter the short name of your opponent:", sender_id, interface)
             update_user_state(sender_id, {'command': 'TICTACTOE', 'step': 2})
@@ -646,6 +652,393 @@ def handle_tictactoe_move_command(sender_id, message, interface):
         return
     _, game_id, move = parts
     handle_tictactoe_move(sender_id, game_id, move, interface)
+
+
+def format_hangman_word(secret_word, guessed_letters):
+    return " ".join([letter if letter in guessed_letters else "_" for letter in secret_word])
+
+
+def send_hangman_status(recipient_id, interface, game_id, secret_word, guessed_letters, attempts_left, status):
+    guessed_set = set(guessed_letters.split(",")) if guessed_letters else set()
+    guessed_set.discard("")
+    masked = format_hangman_word(secret_word, guessed_set)
+    guessed_display = ", ".join(sorted(guessed_set)) if guessed_set else "None"
+    if status == 'won':
+        status_line = "Game over! Word guessed."
+    elif status == 'lost':
+        status_line = f"Game over! Word was {secret_word}."
+    else:
+        status_line = "Guess a letter."
+    message = (
+        "🧩 Hangman 🧩\n"
+        f"Game ID: {game_id}\n"
+        f"Word: {masked}\n"
+        f"Guessed: {guessed_display}\n"
+        f"Attempts left: {attempts_left}\n"
+        f"{status_line}"
+    )
+    send_message(message, recipient_id, interface)
+
+
+def create_hangman_game_for_players(sender_id, opponent_id, secret_word, interface, bbs_nodes):
+    sender_node_id = get_node_id_from_num(sender_id, interface)
+    game_id = create_hangman_game(sender_node_id, opponent_id, secret_word)
+    sender_short_name = get_node_short_name(sender_node_id, interface)
+    opponent_name = get_node_name(opponent_id, interface)
+    mail_subject = f"Hangman Game {game_id}"
+    mail_content = (
+        f"{sender_short_name} invited you to Hangman!\n"
+        f"Game ID: {game_id}\n"
+        f"To guess a letter, reply with HANG,,{game_id},,<letter> or use Games > Hangman > Guess.\n\n"
+        f"Word: {format_hangman_word(secret_word, set())}\n"
+        "Attempts left: 6"
+    )
+    add_mail(sender_node_id, sender_short_name, opponent_id, mail_subject, mail_content, bbs_nodes, interface)
+    send_message(f"Invite sent to {opponent_name}.", sender_id, interface)
+    notification_message = f"You have a new Hangman invite from {sender_short_name}. Check your mailbox."
+    send_message(notification_message, opponent_id, interface)
+
+
+def handle_hangman_command(sender_id, interface):
+    response = "🧩 Hangman 🧩\n[N]ew Game  [G]uess  [V]iew Game\nType BACK to return."
+    send_message(response, sender_id, interface)
+    update_user_state(sender_id, {'command': 'HANGMAN', 'step': 1})
+
+
+def handle_hangman_guess(sender_id, game_id, guess, interface):
+    game = get_hangman_game(game_id)
+    if not game:
+        send_message("Game not found. Check the Game ID and try again.", sender_id, interface)
+        return
+
+    _, player_setter, player_guesser, secret_word, guessed_letters, attempts_left, status = game
+    if status != 'active':
+        send_hangman_status(sender_id, interface, game_id, secret_word, guessed_letters, attempts_left, status)
+        return
+
+    sender_node_id = get_node_id_from_num(sender_id, interface)
+    if sender_node_id != player_guesser:
+        send_message("Only the guesser can make guesses in this game.", sender_id, interface)
+        return
+
+    guess = guess.lower().strip()
+    if len(guess) != 1 or not guess.isalpha():
+        send_message("Invalid guess. Send a single letter.", sender_id, interface)
+        return
+
+    guessed_set = set(guessed_letters.split(",")) if guessed_letters else set()
+    if guess in guessed_set:
+        send_message("That letter was already guessed.", sender_id, interface)
+        return
+
+    guessed_set.add(guess)
+    if guess not in secret_word:
+        attempts_left -= 1
+
+    if all(letter in guessed_set for letter in secret_word):
+        status = 'won'
+    elif attempts_left <= 0:
+        status = 'lost'
+
+    updated_letters = ",".join(sorted(guessed_set))
+    update_hangman_game(game_id, updated_letters, attempts_left, status)
+
+    send_hangman_status(sender_id, interface, game_id, secret_word, updated_letters, attempts_left, status)
+    send_hangman_status(player_setter, interface, game_id, secret_word, updated_letters, attempts_left, status)
+
+
+def handle_hangman_steps(sender_id, message, step, state, interface, bbs_nodes):
+    message = message.lower().strip()
+    if len(message) == 2 and message[1] == 'x':
+        message = message[0]
+
+    if step == 1:
+        if message == 'n':
+            send_message("Enter the short name of your opponent:", sender_id, interface)
+            update_user_state(sender_id, {'command': 'HANGMAN', 'step': 2})
+        elif message == 'g':
+            send_message("Enter the game ID:", sender_id, interface)
+            update_user_state(sender_id, {'command': 'HANGMAN', 'step': 4})
+        elif message == 'v':
+            send_message("Enter the game ID to view:", sender_id, interface)
+            update_user_state(sender_id, {'command': 'HANGMAN', 'step': 7})
+        else:
+            handle_hangman_command(sender_id, interface)
+
+    elif step == 2:
+        short_name = message.lower()
+        nodes = get_node_info(interface, short_name)
+        if not nodes:
+            send_message("I'm unable to find that node in my database.", sender_id, interface)
+            handle_hangman_command(sender_id, interface)
+        elif len(nodes) == 1:
+            opponent_id = nodes[0]['num']
+            send_message("Enter the secret word for Hangman (letters only):", sender_id, interface)
+            update_user_state(sender_id, {'command': 'HANGMAN', 'step': 3, 'opponent_id': opponent_id})
+        else:
+            send_message("Multiple nodes found. Choose one:", sender_id, interface)
+            for i, node in enumerate(nodes):
+                send_message(f"[{i}] {node['longName']}", sender_id, interface)
+            update_user_state(sender_id, {'command': 'HANGMAN', 'step': 6, 'nodes': nodes})
+
+    elif step == 3:
+        secret_word = message.strip().lower()
+        if not secret_word.isalpha():
+            send_message("Invalid word. Use letters only.", sender_id, interface)
+            return
+        create_hangman_game_for_players(sender_id, state['opponent_id'], secret_word, interface, bbs_nodes)
+        update_user_state(sender_id, None)
+
+    elif step == 4:
+        game_id = message.strip()
+        send_message("Guess a letter:", sender_id, interface)
+        update_user_state(sender_id, {'command': 'HANGMAN', 'step': 5, 'game_id': game_id})
+
+    elif step == 5:
+        game_id = state['game_id']
+        handle_hangman_guess(sender_id, game_id, message, interface)
+        update_user_state(sender_id, None)
+
+    elif step == 6:
+        try:
+            selected_node_index = int(message)
+        except ValueError:
+            send_message("Invalid selection. Try again.", sender_id, interface)
+            return
+        if selected_node_index < 0 or selected_node_index >= len(state['nodes']):
+            send_message("Invalid selection. Try again.", sender_id, interface)
+            return
+        selected_node = state['nodes'][selected_node_index]
+        send_message("Enter the secret word for Hangman (letters only):", sender_id, interface)
+        update_user_state(sender_id, {'command': 'HANGMAN', 'step': 3, 'opponent_id': selected_node['num']})
+
+    elif step == 7:
+        game_id = message.strip()
+        game = get_hangman_game(game_id)
+        if not game:
+            send_message("Game not found. Check the Game ID and try again.", sender_id, interface)
+        else:
+            _, _, _, secret_word, guessed_letters, attempts_left, status = game
+            send_hangman_status(sender_id, interface, game_id, secret_word, guessed_letters, attempts_left, status)
+        update_user_state(sender_id, None)
+
+
+def handle_hangman_guess_command(sender_id, message, interface):
+    parts = message.split(",,", 2)
+    if len(parts) != 3:
+        send_message("Hangman command format:\nHANG,,{game_id},,{letter}", sender_id, interface)
+        return
+    _, game_id, guess = parts
+    handle_hangman_guess(sender_id, game_id, guess, interface)
+
+
+def format_connect4_board(board):
+    rows = []
+    for row in range(6):
+        start = row * 7
+        rows.append(" ".join(board[start:start + 7]))
+    header = "1 2 3 4 5 6 7"
+    return f"{header}\n" + "\n".join(rows)
+
+
+def check_connect4_winner(board):
+    def cell(r, c):
+        return board[r * 7 + c]
+
+    for r in range(6):
+        for c in range(7):
+            token = cell(r, c)
+            if token == '-':
+                continue
+            if c <= 3 and all(cell(r, c + i) == token for i in range(4)):
+                return token
+            if r <= 2 and all(cell(r + i, c) == token for i in range(4)):
+                return token
+            if r <= 2 and c <= 3 and all(cell(r + i, c + i) == token for i in range(4)):
+                return token
+            if r <= 2 and c >= 3 and all(cell(r + i, c - i) == token for i in range(4)):
+                return token
+    return None
+
+
+def send_connect4_status(recipient_id, interface, game_id, board, next_turn, status, winner):
+    board_display = format_connect4_board(board)
+    if status == 'won':
+        status_line = f"Game over! {winner} wins."
+    elif status == 'draw':
+        status_line = "Game over! It's a draw."
+    else:
+        status_line = f"Next turn: {next_turn}"
+    message = f"🔴🟡 Connect Four 🔴🟡\nGame ID: {game_id}\n{board_display}\n{status_line}"
+    send_message(message, recipient_id, interface)
+
+
+def create_connect4_game_for_players(sender_id, opponent_id, interface, bbs_nodes):
+    sender_node_id = get_node_id_from_num(sender_id, interface)
+    game_id = create_connect4_game(sender_node_id, opponent_id)
+    board = "-" * 42
+    send_connect4_status(sender_id, interface, game_id, board, "R", "active", None)
+
+    sender_short_name = get_node_short_name(sender_node_id, interface)
+    opponent_name = get_node_name(opponent_id, interface)
+    mail_subject = f"Connect Four Game {game_id}"
+    mail_content = (
+        f"{sender_short_name} invited you to Connect Four!\n"
+        f"Game ID: {game_id}\n"
+        "You are Y. R goes first.\n"
+        f"To make a move, reply with C4,,{game_id},,<column> or use Games > Connect Four > Make Move.\n\n"
+        f"{format_connect4_board(board)}\n"
+        "Next turn: R"
+    )
+    add_mail(sender_node_id, sender_short_name, opponent_id, mail_subject, mail_content, bbs_nodes, interface)
+    notification_message = f"You have a new Connect Four invite from {sender_short_name}. Check your mailbox."
+    send_message(notification_message, opponent_id, interface)
+    send_message(f"Invite sent to {opponent_name}.", sender_id, interface)
+
+
+def handle_connect4_command(sender_id, interface):
+    response = "🔴🟡 Connect Four 🔴🟡\n[N]ew Game  [M]ake Move  [V]iew Game\nType BACK to return."
+    send_message(response, sender_id, interface)
+    update_user_state(sender_id, {'command': 'CONNECT4', 'step': 1})
+
+
+def handle_connect4_move(sender_id, game_id, move, interface):
+    game = get_connect4_game(game_id)
+    if not game:
+        send_message("Game not found. Check the Game ID and try again.", sender_id, interface)
+        return
+
+    _, player_r, player_y, board, next_turn, status, winner = game
+    if status != 'active':
+        send_connect4_status(sender_id, interface, game_id, board, next_turn, status, winner)
+        return
+
+    sender_node_id = get_node_id_from_num(sender_id, interface)
+    if sender_node_id not in [player_r, player_y]:
+        send_message("You are not a player in this game.", sender_id, interface)
+        return
+
+    current_mark = 'R' if sender_node_id == player_r else 'Y'
+    if current_mark != next_turn:
+        send_message(f"It is not your turn. Current turn: {next_turn}", sender_id, interface)
+        return
+
+    try:
+        column = int(move)
+    except ValueError:
+        send_message("Invalid move. Send a column number between 1 and 7.", sender_id, interface)
+        return
+
+    if column < 1 or column > 7:
+        send_message("Invalid move. Choose a column between 1 and 7.", sender_id, interface)
+        return
+
+    col_index = column - 1
+    board_list = list(board)
+    placed = False
+    for row in range(5, -1, -1):
+        index = row * 7 + col_index
+        if board_list[index] == '-':
+            board_list[index] = current_mark
+            placed = True
+            break
+    if not placed:
+        send_message("That column is full. Choose another.", sender_id, interface)
+        return
+
+    updated_board = "".join(board_list)
+    winner = check_connect4_winner(updated_board)
+    if winner:
+        status = 'won'
+        next_turn = current_mark
+    elif '-' not in updated_board:
+        status = 'draw'
+    else:
+        next_turn = 'Y' if current_mark == 'R' else 'R'
+
+    update_connect4_game(game_id, updated_board, next_turn, status, winner)
+
+    send_connect4_status(sender_id, interface, game_id, updated_board, next_turn, status, winner)
+    opponent_id = player_y if sender_node_id == player_r else player_r
+    send_connect4_status(opponent_id, interface, game_id, updated_board, next_turn, status, winner)
+
+
+def handle_connect4_steps(sender_id, message, step, state, interface, bbs_nodes):
+    message = message.lower().strip()
+    if len(message) == 2 and message[1] == 'x':
+        message = message[0]
+
+    if step == 1:
+        if message == 'n':
+            send_message("Enter the short name of your opponent:", sender_id, interface)
+            update_user_state(sender_id, {'command': 'CONNECT4', 'step': 2})
+        elif message == 'm':
+            send_message("Enter the game ID:", sender_id, interface)
+            update_user_state(sender_id, {'command': 'CONNECT4', 'step': 3})
+        elif message == 'v':
+            send_message("Enter the game ID to view:", sender_id, interface)
+            update_user_state(sender_id, {'command': 'CONNECT4', 'step': 5})
+        else:
+            handle_connect4_command(sender_id, interface)
+
+    elif step == 2:
+        short_name = message.lower()
+        nodes = get_node_info(interface, short_name)
+        if not nodes:
+            send_message("I'm unable to find that node in my database.", sender_id, interface)
+            handle_connect4_command(sender_id, interface)
+        elif len(nodes) == 1:
+            opponent_id = nodes[0]['num']
+            create_connect4_game_for_players(sender_id, opponent_id, interface, bbs_nodes)
+            update_user_state(sender_id, None)
+        else:
+            send_message("Multiple nodes found. Choose one:", sender_id, interface)
+            for i, node in enumerate(nodes):
+                send_message(f"[{i}] {node['longName']}", sender_id, interface)
+            update_user_state(sender_id, {'command': 'CONNECT4', 'step': 6, 'nodes': nodes})
+
+    elif step == 3:
+        game_id = message.strip()
+        send_message("Enter your move (column 1-7):", sender_id, interface)
+        update_user_state(sender_id, {'command': 'CONNECT4', 'step': 4, 'game_id': game_id})
+
+    elif step == 4:
+        game_id = state['game_id']
+        handle_connect4_move(sender_id, game_id, message, interface)
+        update_user_state(sender_id, None)
+
+    elif step == 5:
+        game_id = message.strip()
+        game = get_connect4_game(game_id)
+        if not game:
+            send_message("Game not found. Check the Game ID and try again.", sender_id, interface)
+        else:
+            _, _, _, board, next_turn, status, winner = game
+            send_connect4_status(sender_id, interface, game_id, board, next_turn, status, winner)
+        update_user_state(sender_id, None)
+
+    elif step == 6:
+        try:
+            selected_node_index = int(message)
+        except ValueError:
+            send_message("Invalid selection. Try again.", sender_id, interface)
+            return
+        if selected_node_index < 0 or selected_node_index >= len(state['nodes']):
+            send_message("Invalid selection. Try again.", sender_id, interface)
+            return
+        selected_node = state['nodes'][selected_node_index]
+        opponent_id = selected_node['num']
+        create_connect4_game_for_players(sender_id, opponent_id, interface, bbs_nodes)
+        update_user_state(sender_id, None)
+
+
+def handle_connect4_move_command(sender_id, message, interface):
+    parts = message.split(",,", 2)
+    if len(parts) != 3:
+        send_message("Connect Four command format:\nC4,,{game_id},,{column}", sender_id, interface)
+        return
+    _, game_id, move = parts
+    handle_connect4_move(sender_id, game_id, move, interface)
 
 
 def handle_send_mail_command(sender_id, message, interface, bbs_nodes):
@@ -906,7 +1299,7 @@ def handle_quick_help_command(sender_id, interface):
     response = (
         "✈️QUICK COMMANDS✈️\nSend command below for usage info:\n"
         "SM,, - Send Mail\nCM - Check Mail\nPB,, - Post Bulletin\nCB,, - Check Bulletins\n"
-        "TTT,, - Tic Tac Toe Move\n"
+        "TTT,, - Tic Tac Toe Move\nHANG,, - Hangman Guess\nC4,, - Connect Four Move\n"
     )
     send_message(response, sender_id, interface)
     
