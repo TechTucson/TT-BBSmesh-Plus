@@ -1,4 +1,5 @@
 import logging
+import os
 import sqlite3
 import threading
 import uuid
@@ -14,12 +15,32 @@ from utils import (
 )
 
 
+DB_FILE = "bulletins.db"
 thread_local = threading.local()
 
 def get_db_connection():
     if not hasattr(thread_local, 'connection'):
-        thread_local.connection = sqlite3.connect('bulletins.db')
+        thread_local.connection = sqlite3.connect(DB_FILE)
     return thread_local.connection
+
+def close_db_connection():
+    conn = getattr(thread_local, 'connection', None)
+    if conn:
+        conn.close()
+        delattr(thread_local, 'connection')
+
+def clear_database():
+    close_db_connection()
+    if os.path.exists(DB_FILE):
+        os.remove(DB_FILE)
+        logging.info("Database file removed.")
+    else:
+        logging.info("Database file not found; nothing to remove.")
+
+def get_database_size_bytes():
+    if not os.path.exists(DB_FILE):
+        return 0
+    return os.path.getsize(DB_FILE)
 
 def initialize_database():
     conn = get_db_connection()

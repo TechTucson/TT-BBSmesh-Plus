@@ -16,10 +16,12 @@ import logging
 import time
 
 from config_init import initialize_config, get_interface, init_cli_parser, merge_config
-from db_operations import initialize_database
+from db_operations import clear_database, get_database_size_bytes, initialize_database
 from js8call_integration import JS8CallClient
 from message_processing import on_receive
+from meshtastic import BROADCAST_NUM
 from pubsub import pub
+from utils import send_message
 
 # General logging
 logging.basicConfig(
@@ -66,7 +68,20 @@ def main():
 
     logging.info(f"TC²-BBS is running on {system_config['interface_type']} interface...")
 
+    if args.cleandb:
+        logging.info("Clearing database file before startup.")
+        clear_database()
+
     initialize_database()
+    db_size_bytes = get_database_size_bytes()
+    db_size_mb = db_size_bytes / (1024 * 1024)
+    logging.info(f"Database size: {db_size_mb:.2f} MB")
+    if db_size_bytes >= 10 * 1024 * 1024:
+        send_message(
+            f"Database size is {db_size_mb:.2f} MB and has reached the 10 MB threshold.",
+            BROADCAST_NUM,
+            interface
+        )
 
     def receive_packet(packet, interface):
         on_receive(packet, interface)
