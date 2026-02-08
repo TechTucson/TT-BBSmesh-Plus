@@ -272,6 +272,21 @@ def _send_mail_to_short_name(sender_id, interface, bbs_nodes, short_name, subjec
     return True
 
 
+def _resolve_roster_node_id(node_id, interface):
+    if node_id is None:
+        return None
+    if isinstance(node_id, int):
+        return get_node_id_from_num(node_id, interface) or node_id
+    if isinstance(node_id, str):
+        trimmed = node_id.strip()
+        if trimmed.startswith("!"):
+            return trimmed
+        if trimmed.isdigit():
+            return get_node_id_from_num(int(trimmed), interface) or int(trimmed)
+        return trimmed
+    return node_id
+
+
 def handle_checkin_steps(sender_id, message, step, state, interface, bbs_nodes):
     message = message.lower().strip()
     if len(message) == 2 and message[1] == 'x':
@@ -325,15 +340,16 @@ def handle_checkin_steps(sender_id, message, step, state, interface, bbs_nodes):
         if note:
             content += f"\nRequest note: {note}"
         for short_name, node_id, _, _ in roster:
-            if not node_id:
+            recipient_id = _resolve_roster_node_id(node_id, interface)
+            if not recipient_id:
                 continue
-            add_mail(get_node_id_from_num(sender_id, interface), sender_short_name, int(node_id), subject,
+            add_mail(get_node_id_from_num(sender_id, interface), sender_short_name, recipient_id, subject,
                      content, bbs_nodes, interface)
             notification_message = (
                 f"You have a new mail message from {sender_short_name}. "
                 "Check your mailbox by responding to this message with CM."
             )
-            send_message(notification_message, int(node_id), interface)
+            send_message(notification_message, recipient_id, interface)
         send_message("Check-in request sent to roster entries.", sender_id, interface)
         update_user_state(sender_id, None)
 
