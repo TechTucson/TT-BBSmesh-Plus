@@ -6,6 +6,7 @@ This guide explains how to use every available menu item and quick command in th
 
 * **Main menu**: Send any message to the BBS node to receive it.
 * **Pick an option**: Reply with the letter/number shown in brackets (e.g., `M` for `[M]ail`).
+* **Follow prompts**: When the system asks a question (like replying to a message), your reply is used for that flow until you return to a menu.
 * **Back/exit**: Send `BACK` to return to the prior menu or `X` to go to the main menu.
 
 ---
@@ -307,4 +308,3 @@ You can send these commands directly (without navigating menus):
 * **Word Chain play:** `wc,,<game_id>,<word>`
 * **Trivia answer:** `triv,,<game_id>,<answer>`
 * **Boardgame move:** `move,,<game_id>,<move>`
-
