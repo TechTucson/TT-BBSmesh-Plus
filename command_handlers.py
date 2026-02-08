@@ -22,7 +22,9 @@ from db_operations import (
     create_battleship_game, get_battleship_game, update_battleship_game,
     create_word_chain_game, get_word_chain_game, update_word_chain_game,
     create_trivia_game, get_trivia_game, update_trivia_game,
-    create_boardgame_match, get_boardgame_match, update_boardgame_match
+    create_boardgame_match, get_boardgame_match, update_boardgame_match,
+    add_or_update_roster_entry, update_roster_last_seen, delete_roster_entry,
+    get_roster_entries, add_checkin, get_latest_checkins
 )
 from utils import (
     get_node_id_from_num, get_node_info,
@@ -39,11 +41,47 @@ main_menu_items = config['menu']['main_menu_items'].split(',')
 bbs_menu_items = config['menu']['bbs_menu_items'].split(',')
 utilities_menu_items = config['menu']['utilities_menu_items'].split(',')
 games_menu_items = config['menu'].get('games_menu_items', 'T').split(',')
+readiness_menu_items = config['menu'].get('readiness_menu_items', 'C,T,G,R,B,X').split(',')
 
 DICTIONARY_PATH = os.path.join('Tools', 'dictionary.json')
 _dictionary_cache = None
 ADSB_PARSER_PATH = os.path.join(os.path.dirname(__file__), 'Tools', 'ADSBPArser.py')
 WX_PARSER_PATH = os.path.join(os.path.dirname(__file__), 'Tools', 'wxparser.py')
+
+GO_BAG_CHECKLIST = (
+    "🎒 72-Hour Go-Bag Checklist 🎒\n"
+    "- Water (1 gallon/person/day)\n"
+    "- Food (non-perishable, 3 days)\n"
+    "- First aid kit + meds\n"
+    "- Flashlight + extra batteries\n"
+    "- Radio (battery/hand-crank)\n"
+    "- Phone charger + power bank\n"
+    "- Copies of IDs + cash\n"
+    "- Warm layers + rain gear\n"
+    "- Hygiene items + sanitizer\n"
+    "- Multi-tool + duct tape\n"
+    "- Emergency blanket\n"
+    "- Local maps + contact list\n"
+    "- Whistle + notepad\n"
+    "- Spare keys\n"
+)
+
+RADIO_REFERENCE = (
+    "📻 Radio/Comms Quick Reference 📻\n"
+    "Local/Regional Frequencies:\n"
+    "- Primary: __________________\n"
+    "- Secondary: ________________\n"
+    "- Repeater: _________________\n"
+    "\n"
+    "Protocols:\n"
+    "- Keep messages short, clear, and repeat back critical info.\n"
+    "- Use call signs or short names; confirm receipt.\n"
+    "- For urgent traffic, start with URGENT/PRIORITY.\n"
+    "\n"
+    "Notes:\n"
+    "- Net control: ______________\n"
+    "- Check-in window: __________\n"
+)
 
 
 def build_menu(items, menu_name):
@@ -58,8 +96,13 @@ def build_menu(items, menu_name):
                 menu_str += "[B]ack\n"
         elif item.strip() == 'U':
             menu_str += "[U]tilities\n"
+        elif item.strip() == 'R' and menu_name == "💾TC² BBS💾":
+            menu_str += "[R]eadiness\n"
         elif item.strip() == 'G':
-            menu_str += "[G]ames\n"
+            if "Readiness" in menu_name:
+                menu_str += "[G]o-Bag Checklist\n"
+            else:
+                menu_str += "[G]ames\n"
         elif item.strip() == 'X':
             menu_str += "E[X]IT\n"
         elif item.strip() == 'M':
@@ -68,7 +111,9 @@ def build_menu(items, menu_name):
             else:
                 menu_str += "[M]ail\n"
         elif item.strip() == 'C':
-            if "Games" in menu_name:
+            if "Readiness" in menu_name:
+                menu_str += "[C]heck-In\n"
+            elif "Games" in menu_name:
                 menu_str += "[C]onnect Four\n"
             else:
                 menu_str += "[C]hannel Dir\n"
@@ -84,7 +129,9 @@ def build_menu(items, menu_name):
             else:
                 menu_str += "[W]all of Shame [3]\n"
         elif item.strip() == 'T':
-            if "Games" in menu_name:
+            if "Readiness" in menu_name:
+                menu_str += "[T]eam Roster\n"
+            elif "Games" in menu_name:
                 menu_str += "[T]ic Tac Toe\n"
             else:
                 menu_str += "[T]ime [4]\n"
@@ -105,7 +152,9 @@ def build_menu(items, menu_name):
         elif item.strip() == 'O':
             menu_str += "[O]llama [8]\n"
         elif item.strip() == 'R':
-            if "Games" in menu_name:
+            if "Readiness" in menu_name:
+                menu_str += "[R]adio/Comms Reference\n"
+            elif "Games" in menu_name:
                 menu_str += "T[R]ivia\n"
         elif item.strip() == 'K':
             if "Games" in menu_name:
@@ -122,6 +171,8 @@ def handle_help_command(sender_id, interface, menu_name=None):
             response = build_menu(utilities_menu_items, "🛠️Utilities Menu🛠️")
         elif menu_name == 'games':
             response = build_menu(games_menu_items, "🎮Games Menu🎮")
+        elif menu_name == 'readiness':
+            response = build_menu(readiness_menu_items, "🧭Readiness Menu🧭")
         response = f"{response}Type BACK to return."
     else:
         update_user_state(sender_id, {'command': 'MAIN_MENU', 'step': 1})  # Reset to main menu state
@@ -158,6 +209,237 @@ def handle_stats_command(sender_id, interface):
     response = "📊Stats Menu📊\nWhat stats would you like to view?\n[N]odes  [H]ardware  [R]oles\nType BACK to return."
     send_message(response, sender_id, interface)
     update_user_state(sender_id, {'command': 'STATS', 'step': 1})
+
+
+def handle_readiness_checkin_command(sender_id, interface):
+    response = (
+        "✅Check-In Menu✅\n"
+        "What would you like to do?\n"
+        "[S]end request  [R]espond  [V]iew rollup\n"
+        "Type BACK to return."
+    )
+    send_message(response, sender_id, interface)
+    update_user_state(sender_id, {'command': 'CHECKIN', 'step': 1})
+
+
+def handle_readiness_roster_command(sender_id, interface):
+    response = (
+        "👥Team Roster Menu👥\n"
+        "What would you like to do?\n"
+        "[A]dd/Update  [L]ist  [D]elete\n"
+        "Type BACK to return."
+    )
+    send_message(response, sender_id, interface)
+    update_user_state(sender_id, {'command': 'ROSTER', 'step': 1})
+
+
+def handle_go_bag_command(sender_id, interface):
+    send_message(GO_BAG_CHECKLIST, sender_id, interface)
+
+
+def handle_radio_reference_command(sender_id, interface):
+    send_message(RADIO_REFERENCE, sender_id, interface)
+
+
+def _format_last_seen(timestamp):
+    if not timestamp:
+        return "unknown"
+    return timestamp
+
+
+def _send_mail_to_short_name(sender_id, interface, bbs_nodes, short_name, subject, content):
+    nodes = get_node_info(interface, short_name.lower())
+    if not nodes:
+        send_message(f"Node with short name '{short_name}' not found.", sender_id, interface)
+        return False
+    if len(nodes) > 1:
+        send_message(f"Multiple nodes with short name '{short_name}' found. Please be more specific.", sender_id,
+                     interface)
+        return False
+
+    recipient_id = nodes[0]['num']
+    recipient_name = get_node_name(recipient_id, interface)
+    sender_short_name = get_node_short_name(get_node_id_from_num(sender_id, interface), interface)
+
+    add_mail(get_node_id_from_num(sender_id, interface), sender_short_name, recipient_id, subject,
+             content, bbs_nodes, interface)
+    send_message(f"Mail has been sent to {recipient_name}.", sender_id, interface)
+    notification_message = (
+        f"You have a new mail message from {sender_short_name}. "
+        "Check your mailbox by responding to this message with CM."
+    )
+    send_message(notification_message, recipient_id, interface)
+    return True
+
+
+def handle_checkin_steps(sender_id, message, step, state, interface, bbs_nodes):
+    message = message.lower().strip()
+    if len(message) == 2 and message[1] == 'x':
+        message = message[0]
+
+    if step == 1:
+        if message in {'b', 'back'}:
+            handle_help_command(sender_id, interface, 'readiness')
+            return
+        if message == 's':
+            send_message("Enter a short note for the check-in request (or type SKIP).", sender_id, interface)
+            update_user_state(sender_id, {'command': 'CHECKIN', 'step': 2})
+        elif message == 'r':
+            send_message("Reply with [O]K, [H]elp, or [U]ut of area.", sender_id, interface)
+            update_user_state(sender_id, {'command': 'CHECKIN', 'step': 3})
+        elif message == 'v':
+            roster = get_roster_entries()
+            if not roster:
+                send_message("Roster is empty. Add entries first.", sender_id, interface)
+                handle_readiness_checkin_command(sender_id, interface)
+                return
+            latest = {entry[0]: entry for entry in get_latest_checkins()}
+            response_lines = ["📋 Latest Check-Ins:"]
+            for short_name, _, role, last_seen in roster:
+                if short_name in latest:
+                    _, status, note, timestamp = latest[short_name]
+                    note_str = f" ({note})" if note else ""
+                    response_lines.append(f"- {short_name} [{role or 'role?'}]: {status} @ {timestamp}{note_str}")
+                else:
+                    response_lines.append(f"- {short_name} [{role or 'role?'}]: No check-in yet (last seen: {_format_last_seen(last_seen)})")
+            send_message("\n".join(response_lines), sender_id, interface)
+            handle_readiness_checkin_command(sender_id, interface)
+        else:
+            handle_readiness_checkin_command(sender_id, interface)
+
+    elif step == 2:
+        note = "" if message == 'skip' else message
+        roster = get_roster_entries()
+        if not roster:
+            send_message("Roster is empty. Add entries first.", sender_id, interface)
+            handle_readiness_checkin_command(sender_id, interface)
+            return
+        sender_short_name = get_node_short_name(get_node_id_from_num(sender_id, interface), interface)
+        subject = "Check-In Request"
+        content = (
+            "Please respond with your status:\n"
+            "- OK\n"
+            "- HELP\n"
+            "- OUT OF AREA\n"
+        )
+        if note:
+            content += f"\nRequest note: {note}"
+        for short_name, node_id, _, _ in roster:
+            if not node_id:
+                continue
+            add_mail(get_node_id_from_num(sender_id, interface), sender_short_name, int(node_id), subject,
+                     content, bbs_nodes, interface)
+            notification_message = (
+                f"You have a new mail message from {sender_short_name}. "
+                "Check your mailbox by responding to this message with CM."
+            )
+            send_message(notification_message, int(node_id), interface)
+        send_message("Check-in request sent to roster entries.", sender_id, interface)
+        update_user_state(sender_id, None)
+
+    elif step == 3:
+        status_map = {'o': 'OK', 'ok': 'OK', 'h': 'HELP', 'u': 'OUT OF AREA', 'out': 'OUT OF AREA'}
+        status = status_map.get(message)
+        if not status:
+            send_message("Invalid status. Reply with O (OK), H (HELP), or U (OUT OF AREA).", sender_id, interface)
+            return
+        send_message("Enter an optional note for your check-in (or type SKIP).", sender_id, interface)
+        update_user_state(sender_id, {'command': 'CHECKIN', 'step': 4, 'status': status})
+
+    elif step == 4:
+        note = "" if message == 'skip' else message
+        sender_short_name = get_node_short_name(get_node_id_from_num(sender_id, interface), interface)
+        node_id = get_node_id_from_num(sender_id, interface)
+        timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+        add_checkin(sender_short_name, str(node_id), state['status'], note, timestamp)
+        update_roster_last_seen(sender_short_name, timestamp)
+        send_message("Who should receive this check-in? Enter short name or type SKIP.", sender_id, interface)
+        update_user_state(sender_id, {'command': 'CHECKIN', 'step': 5, 'status': state['status'], 'note': note, 'timestamp': timestamp})
+
+    elif step == 5:
+        if message != 'skip':
+            subject = f"Check-In Response: {state['status']}"
+            content = f"Status: {state['status']}\nTime: {state['timestamp']}"
+            if state['note']:
+                content += f"\nNote: {state['note']}"
+            _send_mail_to_short_name(sender_id, interface, bbs_nodes, message, subject, content)
+        send_message("Check-in recorded.", sender_id, interface)
+        update_user_state(sender_id, None)
+
+
+def handle_roster_steps(sender_id, message, step, state, interface):
+    message = message.lower().strip()
+    if len(message) == 2 and message[1] == 'x':
+        message = message[0]
+
+    if step == 1:
+        if message in {'b', 'back'}:
+            handle_help_command(sender_id, interface, 'readiness')
+            return
+        if message == 'a':
+            send_message("Enter the short name to add/update:", sender_id, interface)
+            update_user_state(sender_id, {'command': 'ROSTER', 'step': 2})
+        elif message == 'l':
+            roster = get_roster_entries()
+            if not roster:
+                send_message("Roster is empty.", sender_id, interface)
+            else:
+                lines = ["👥 Team Roster:"]
+                for short_name, node_id, role, last_seen in roster:
+                    role_display = role if role else "role?"
+                    last_seen_display = _format_last_seen(last_seen)
+                    node_display = node_id if node_id else "unknown"
+                    lines.append(f"- {short_name} ({role_display}) node: {node_display}, last seen: {last_seen_display}")
+                send_message("\n".join(lines), sender_id, interface)
+            handle_readiness_roster_command(sender_id, interface)
+        elif message == 'd':
+            send_message("Enter the short name to delete:", sender_id, interface)
+            update_user_state(sender_id, {'command': 'ROSTER', 'step': 5})
+        else:
+            handle_readiness_roster_command(sender_id, interface)
+
+    elif step == 2:
+        short_name = message
+        nodes = get_node_info(interface, short_name)
+        if not nodes:
+            send_message("Node not found. You can still add it. Enter role for this contact:", sender_id, interface)
+            update_user_state(sender_id, {'command': 'ROSTER', 'step': 4, 'short_name': short_name, 'node_id': None})
+        elif len(nodes) == 1:
+            send_message("Enter role for this contact:", sender_id, interface)
+            update_user_state(sender_id, {'command': 'ROSTER', 'step': 4, 'short_name': short_name, 'node_id': nodes[0]['num']})
+        else:
+            send_message("Multiple nodes found. Choose one:", sender_id, interface)
+            for i, node in enumerate(nodes):
+                send_message(f"[{i}] {node['longName']}", sender_id, interface)
+            update_user_state(sender_id, {'command': 'ROSTER', 'step': 3, 'short_name': short_name, 'nodes': nodes})
+
+    elif step == 3:
+        try:
+            selected_node_index = int(message)
+        except ValueError:
+            send_message("Invalid selection. Try again.", sender_id, interface)
+            return
+        nodes = state.get('nodes', [])
+        if selected_node_index < 0 or selected_node_index >= len(nodes):
+            send_message("Invalid selection. Try again.", sender_id, interface)
+            return
+        selected_node = nodes[selected_node_index]
+        send_message("Enter role for this contact:", sender_id, interface)
+        update_user_state(sender_id, {'command': 'ROSTER', 'step': 4, 'short_name': state['short_name'], 'node_id': selected_node['num']})
+
+    elif step == 4:
+        role = message
+        add_or_update_roster_entry(state['short_name'], state['node_id'], role)
+        send_message(f"Roster entry saved for {state['short_name']}.", sender_id, interface)
+        update_user_state(sender_id, None)
+
+    elif step == 5:
+        deleted = delete_roster_entry(message)
+        if deleted:
+            send_message("Roster entry deleted.", sender_id, interface)
+        else:
+            send_message("No roster entry found for that short name.", sender_id, interface)
+        update_user_state(sender_id, None)
 
 
 def handle_fortune_command(sender_id, interface):
