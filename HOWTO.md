@@ -191,10 +191,32 @@ Follow the prompts for each step.
 
 Displays the go-bag checklist items.
 
+**Update the checklist text**
+Edit `GO_BAG_CHECKLIST` in `command_handlers.py`. Each line is a quoted string with a `\n` at the end. Restart the server after saving changes.
+
 ### Radio/Comms Reference
 **Path:** Main → Readiness → Radio Reference (`R`)
 
 Displays the radio/comms quick reference template.
+
+**Update the radio/comms reference**
+Edit `RADIO_REFERENCE` in `command_handlers.py`. Each line is a quoted string with a `\n` at the end. Restart the server after saving changes.
+
+---
+
+## Database Cleanup (CLI)
+
+You can clear the SQLite database before startup using the server CLI flag. This is useful for resetting the BBS data during development or testing.
+
+**Command**
+
+```
+python3 server.py --cleandb
+```
+
+**Notes**
+* This removes the existing database contents before the server initializes a fresh database.
+* Use with caution—this is destructive and cannot be undone.
 
 ---
 
