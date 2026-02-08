@@ -45,6 +45,9 @@ Main menu entries are configured in `config.ini`, but the standard items include
 * **Command:** `sm,,<short_name>,<subject>,<message>`
 * Example: `sm,,N0CALL,Hello,Meet at 7pm.`
 
+**Quick check mail**
+* **Command:** `cm`
+
 ### Bulletins
 **Path:** Main → BBS → Bulletins (`L`)
 
@@ -224,6 +227,9 @@ python3 server.py --dbbackup /path/to/backup.db
 * Use with caution—this is destructive and cannot be undone.
 * When you run `--cleandb`, the server prompts you to back up the database first.
 * `--dbbackup` creates a timestamped backup by default, or uses the path you supply.
+**Notes**
+* This removes the existing database contents before the server initializes a fresh database.
+* Use with caution—this is destructive and cannot be undone.
 
 ---
 
@@ -332,6 +338,7 @@ You can send these commands directly (without navigating menus):
 * **List channels:** `chl`
 * **Post channel:** `chp,,<name>,<url>`
 * **Tic-Tac-Toe move:** `ttt,,<game_id>,<pos>`
+* **Check mail:** `cm`
 * **Hangman guess:** `hang,,<game_id>,<letter>`
 * **Connect Four move:** `c4,,<game_id>,<column>`
 * **Mastermind guess:** `mm,,<game_id>,<guess>`
