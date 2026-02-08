@@ -308,11 +308,16 @@ def handle_checkin_steps(sender_id, message, step, state, interface, bbs_nodes):
                 send_message("Roster is empty. Add entries first.", sender_id, interface)
                 handle_readiness_checkin_command(sender_id, interface)
                 return
-            latest = {entry[0]: entry for entry in get_latest_checkins()}
+            latest = {
+                entry[0].lower(): entry
+                for entry in get_latest_checkins()
+                if entry[0]
+            }
             response_lines = ["📋 Latest Check-Ins:"]
             for short_name, _, role, last_seen in roster:
-                if short_name in latest:
-                    _, status, note, timestamp = latest[short_name]
+                normalized_name = short_name.lower() if short_name else short_name
+                if normalized_name in latest:
+                    _, status, note, timestamp = latest[normalized_name]
                     note_str = f" ({note})" if note else ""
                     response_lines.append(f"- {short_name} [{role or 'role?'}]: {status} @ {timestamp}{note_str}")
                 else:
@@ -365,6 +370,8 @@ def handle_checkin_steps(sender_id, message, step, state, interface, bbs_nodes):
     elif step == 4:
         note = "" if message == 'skip' else message
         sender_short_name = get_node_short_name(get_node_id_from_num(sender_id, interface), interface)
+        if sender_short_name:
+            sender_short_name = sender_short_name.lower()
         node_id = get_node_id_from_num(sender_id, interface)
         timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
         add_checkin(sender_short_name, str(node_id), state['status'], note, timestamp)
