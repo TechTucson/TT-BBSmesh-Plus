@@ -25,6 +25,7 @@ While TC²-BBS forms the core of this work, the original inspiration actually ca
     - Take a Look here: Coming Soon
   - Added a Weather Tool This takes audio from National Weather Forecast and SAFE Creates Text, Exposes that text and is presented to the user. 
     - Take a Look here: Coming Soon  
+  - Added a Readiness menu with check-ins, team roster, go-bag checklist, and radio/comms reference.
 ## Upcoming Enhancements
   - Adding some sort of APRS Functionality
 

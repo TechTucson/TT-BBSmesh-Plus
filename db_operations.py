@@ -131,6 +131,21 @@ def initialize_database():
                     status TEXT NOT NULL,
                     created_at TEXT NOT NULL
                 );''')
+    c.execute('''CREATE TABLE IF NOT EXISTS readiness_roster (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    short_name TEXT NOT NULL UNIQUE,
+                    node_id TEXT,
+                    role TEXT,
+                    last_seen TEXT
+                );''')
+    c.execute('''CREATE TABLE IF NOT EXISTS readiness_checkins (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    short_name TEXT NOT NULL,
+                    node_id TEXT,
+                    status TEXT NOT NULL,
+                    note TEXT,
+                    timestamp TEXT NOT NULL
+                );''')
     conn.commit()
     print("Database schema initialized.")
 
@@ -205,6 +220,73 @@ def add_mail(sender_id, sender_short_name, recipient_id, subject, content, bbs_n
     if bbs_nodes and interface:
         send_mail_to_bbs_nodes(sender_id, sender_short_name, recipient_id, subject, content, unique_id, bbs_nodes, interface)
     return unique_id
+
+
+def add_or_update_roster_entry(short_name, node_id, role, last_seen=None):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("SELECT id, last_seen FROM readiness_roster WHERE short_name = ?", (short_name,))
+    existing = c.fetchone()
+    if existing:
+        current_last_seen = existing[1]
+        updated_last_seen = last_seen if last_seen else current_last_seen
+        c.execute(
+            "UPDATE readiness_roster SET node_id = ?, role = ?, last_seen = ? WHERE short_name = ?",
+            (node_id, role, updated_last_seen, short_name)
+        )
+    else:
+        c.execute(
+            "INSERT INTO readiness_roster (short_name, node_id, role, last_seen) VALUES (?, ?, ?, ?)",
+            (short_name, node_id, role, last_seen)
+        )
+    conn.commit()
+
+
+def update_roster_last_seen(short_name, last_seen):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("UPDATE readiness_roster SET last_seen = ? WHERE short_name = ?", (last_seen, short_name))
+    conn.commit()
+
+
+def delete_roster_entry(short_name):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("DELETE FROM readiness_roster WHERE short_name = ?", (short_name,))
+    conn.commit()
+    return c.rowcount
+
+
+def get_roster_entries():
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("SELECT short_name, node_id, role, last_seen FROM readiness_roster ORDER BY short_name")
+    return c.fetchall()
+
+
+def add_checkin(short_name, node_id, status, note, timestamp):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO readiness_checkins (short_name, node_id, status, note, timestamp) VALUES (?, ?, ?, ?, ?)",
+        (short_name, node_id, status, note, timestamp)
+    )
+    conn.commit()
+
+
+def get_latest_checkins():
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('''SELECT c.short_name, c.status, c.note, c.timestamp
+                 FROM readiness_checkins c
+                 JOIN (
+                     SELECT short_name, MAX(timestamp) AS max_ts
+                     FROM readiness_checkins
+                     GROUP BY short_name
+                 ) latest
+                 ON c.short_name = latest.short_name AND c.timestamp = latest.max_ts
+                 ORDER BY c.timestamp DESC''')
+    return c.fetchall()
 
 def get_mail(recipient_id):
     conn = get_db_connection()
