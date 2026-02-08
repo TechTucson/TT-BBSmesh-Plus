@@ -1676,7 +1676,7 @@ def send_trivia_status(recipient_id, interface, game_id, question, status, p1_re
     else:
         status_line = "Submit your answer."
     response = p1_response if is_player1 else p2_response
-    message = (Mastermind / Bulls‑and‑Cows
+    message = ("Mastermind / Bulls‑and‑Cows\n"
         "🧠 Trivia 🧠\n"
         f"Game ID: {game_id}\n"
         f"Question: {question}\n"
