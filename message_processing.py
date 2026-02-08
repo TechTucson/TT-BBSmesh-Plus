@@ -14,7 +14,15 @@ from command_handlers import (
     handle_wx_command, handle_wx_steps, handle_tictactoe_command, handle_tictactoe_steps,
     handle_tictactoe_move_command, handle_hangman_command, handle_hangman_steps,
     handle_hangman_guess_command, handle_connect4_command, handle_connect4_steps,
-    handle_connect4_move_command
+    handle_connect4_move_command, handle_mastermind_command, handle_mastermind_steps,
+    handle_mastermind_guess_command, handle_battleship_command, handle_battleship_steps,
+    handle_battleship_set_command, handle_battleship_fire_command,
+    handle_word_chain_command, handle_word_chain_steps, handle_word_chain_play_command,
+    handle_trivia_command, handle_trivia_steps, handle_trivia_answer_command,
+    handle_boardgame_command, handle_boardgame_steps, handle_boardgame_move_command,
+    handle_readiness_checkin_command, handle_readiness_roster_command,
+    handle_checkin_steps, handle_roster_steps, handle_go_bag_command,
+    handle_radio_reference_command
 )
 from db_operations import add_bulletin, add_mail, delete_bulletin, delete_mail, get_db_connection, add_channel
 from js8call_integration import handle_js8call_command, handle_js8call_steps, handle_group_message_selection
@@ -25,6 +33,7 @@ main_menu_handlers = {
     "b": lambda sender_id, interface: handle_help_command(sender_id, interface, 'bbs'),
     "u": lambda sender_id, interface: handle_help_command(sender_id, interface, 'utilities'),
     "g": lambda sender_id, interface: handle_help_command(sender_id, interface, 'games'),
+    "r": lambda sender_id, interface: handle_help_command(sender_id, interface, 'readiness'),
     "x": handle_help_command
 }
 
@@ -41,6 +50,11 @@ games_menu_handlers = {
     "t": handle_tictactoe_command,
     "h": handle_hangman_command,
     "c": handle_connect4_command,
+    "m": handle_mastermind_command,
+    "l": handle_battleship_command,
+    "w": handle_word_chain_command,
+    "r": handle_trivia_command,
+    "k": handle_boardgame_command,
     "x": handle_help_command
 }
 
@@ -65,6 +79,15 @@ utilities_menu_handlers = {
     "8": handle_ollama_command,
     "h": handle_wx_command,
     "9": handle_wx_command,
+}
+
+readiness_menu_handlers = {
+    "c": handle_readiness_checkin_command,
+    "t": handle_readiness_roster_command,
+    "g": handle_go_bag_command,
+    "r": handle_radio_reference_command,
+    "b": handle_help_command,
+    "x": handle_help_command
 }
 
 
@@ -127,6 +150,18 @@ def process_message(sender_id, message, interface, is_sync_message=False):
             handle_hangman_guess_command(sender_id, message_lower, interface)
         elif message_lower.startswith("c4,,"):
             handle_connect4_move_command(sender_id, message_lower, interface)
+        elif message_lower.startswith("mm,,"):
+            handle_mastermind_guess_command(sender_id, message_lower, interface)
+        elif message_lower.startswith("bsset,,"):
+            handle_battleship_set_command(sender_id, message_lower, interface)
+        elif message_lower.startswith("bsfire,,"):
+            handle_battleship_fire_command(sender_id, message_lower, interface)
+        elif message_lower.startswith("wc,,"):
+            handle_word_chain_play_command(sender_id, message_lower, interface)
+        elif message_lower.startswith("triv,,"):
+            handle_trivia_answer_command(sender_id, message_lower, interface)
+        elif message_lower.startswith("move,,"):
+            handle_boardgame_move_command(sender_id, message_lower, interface)
         elif message_lower.startswith("cm"):
             handle_check_mail_command(sender_id, interface)
         elif message_lower.startswith("pb,,"):
@@ -158,10 +193,16 @@ def process_message(sender_id, message, interface, is_sync_message=False):
                 if state and state.get('command') in ['STATS', 'DICTIONARY', 'ADSB', 'OLLAMA', 'WX']:
                     handle_help_command(sender_id, interface, 'utilities')
                     return
+                if state and state.get('command') in ['CHECKIN', 'ROSTER']:
+                    handle_help_command(sender_id, interface, 'readiness')
+                    return
                 if state and state.get('command') in ['TICTACTOE']:
                     handle_help_command(sender_id, interface, 'games')
                     return
                 if state and state.get('command') in ['HANGMAN', 'CONNECT4']:
+                    handle_help_command(sender_id, interface, 'games')
+                    return
+                if state and state.get('command') in ['MASTERMIND', 'BATTLESHIP', 'WORD_CHAIN', 'TRIVIA', 'BOARDGAME']:
                     handle_help_command(sender_id, interface, 'games')
                     return
                 handle_help_command(sender_id, interface)
@@ -175,6 +216,8 @@ def process_message(sender_id, message, interface, is_sync_message=False):
                     handlers = utilities_menu_handlers
                 elif menu_name == 'games':
                     handlers = games_menu_handlers
+                elif menu_name == 'readiness':
+                    handlers = readiness_menu_handlers
                 else:
                     handlers = main_menu_handlers
             elif state and state['command'] == 'BULLETIN_MENU':
@@ -189,6 +232,9 @@ def process_message(sender_id, message, interface, is_sync_message=False):
                 return
             else:
                 handlers = main_menu_handlers
+
+            if state and state.get('command') in ['CHECKIN', 'ROSTER']:
+                handlers = {}
 
             if message_lower == 'x':
                 # Reset to main menu state
@@ -226,6 +272,20 @@ def process_message(sender_id, message, interface, is_sync_message=False):
                     handle_hangman_steps(sender_id, message, step, state, interface, bbs_nodes)
                 elif command == 'CONNECT4':
                     handle_connect4_steps(sender_id, message, step, state, interface, bbs_nodes)
+                elif command == 'MASTERMIND':
+                    handle_mastermind_steps(sender_id, message, step, state, interface, bbs_nodes)
+                elif command == 'BATTLESHIP':
+                    handle_battleship_steps(sender_id, message, step, state, interface, bbs_nodes)
+                elif command == 'WORD_CHAIN':
+                    handle_word_chain_steps(sender_id, message, step, state, interface, bbs_nodes)
+                elif command == 'TRIVIA':
+                    handle_trivia_steps(sender_id, message, step, state, interface, bbs_nodes)
+                elif command == 'BOARDGAME':
+                    handle_boardgame_steps(sender_id, message, step, state, interface, bbs_nodes)
+                elif command == 'CHECKIN':
+                    handle_checkin_steps(sender_id, message, step, state, interface, bbs_nodes)
+                elif command == 'ROSTER':
+                    handle_roster_steps(sender_id, message, step, state, interface)
                 elif command == 'CHECK_MAIL':
                     if step == 1:
                         handle_read_mail_command(sender_id, message, state, interface)
