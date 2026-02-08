@@ -45,6 +45,9 @@ Main menu entries are configured in `config.ini`, but the standard items include
 * **Command:** `sm,,<short_name>,<subject>,<message>`
 * Example: `sm,,N0CALL,Hello,Meet at 7pm.`
 
+**Quick check mail**
+* **Command:** `cm`
+
 ### Bulletins
 **Path:** Main → BBS → Bulletins (`L`)
 
@@ -300,6 +303,7 @@ You can send these commands directly (without navigating menus):
 * **List channels:** `chl`
 * **Post channel:** `chp,,<name>,<url>`
 * **Tic-Tac-Toe move:** `ttt,,<game_id>,<pos>`
+* **Check mail:** `cm`
 * **Hangman guess:** `hang,,<game_id>,<letter>`
 * **Connect Four move:** `c4,,<game_id>,<column>`
 * **Mastermind guess:** `mm,,<game_id>,<guess>`
