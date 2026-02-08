@@ -233,6 +233,9 @@ def process_message(sender_id, message, interface, is_sync_message=False):
             else:
                 handlers = main_menu_handlers
 
+            if state and state.get('command') in ['CHECKIN', 'ROSTER']:
+                handlers = {}
+
             if message_lower == 'x':
                 # Reset to main menu state
                 handle_help_command(sender_id, interface)
