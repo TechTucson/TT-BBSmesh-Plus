@@ -46,6 +46,10 @@ def init_cli_parser() -> argparse.Namespace:
         action="store",
         help="MQTT topic to subscribe",
         default='meshtastic.receive')
+    parser.add_argument(
+        "--cleandb",
+        action="store_true",
+        help="Delete the local database file before starting the server")
     #
     # Add extra arguments here
     #...
