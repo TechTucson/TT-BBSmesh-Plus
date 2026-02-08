@@ -233,7 +233,7 @@ def process_message(sender_id, message, interface, is_sync_message=False):
             else:
                 handlers = main_menu_handlers
 
-            if state and state.get('command') not in ['MENU', 'BULLETIN_MENU', 'BULLETIN_ACTION']:
+            if state and state.get('command') not in ['MENU', 'MAIN_MENU', 'BULLETIN_MENU', 'BULLETIN_ACTION']:
                 handlers = {}
 
             if state and state.get('command') in ['CHECKIN', 'ROSTER']:
