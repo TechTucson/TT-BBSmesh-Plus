@@ -204,16 +204,29 @@ Edit `RADIO_REFERENCE` in `command_handlers.py`. Each line is a quoted string wi
 
 ---
 
-## Database Cleanup (CLI)
+## Database Cleanup & Backup (CLI)
 
 You can clear the SQLite database before startup using the server CLI flag. This is useful for resetting the BBS data during development or testing.
 
-**Command**
+**Commands**
 
 ```
 python3 server.py --cleandb
 ```
 
+```
+python3 server.py --dbbackup
+```
+
+```
+python3 server.py --dbbackup /path/to/backup.db
+```
+
+**Notes**
+* This removes the existing database contents before the server initializes a fresh database.
+* Use with caution—this is destructive and cannot be undone.
+* When you run `--cleandb`, the server prompts you to back up the database first.
+* `--dbbackup` creates a timestamped backup by default, or uses the path you supply.
 **Notes**
 * This removes the existing database contents before the server initializes a fresh database.
 * Use with caution—this is destructive and cannot be undone.

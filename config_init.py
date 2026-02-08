@@ -50,6 +50,13 @@ def init_cli_parser() -> argparse.Namespace:
         "--cleandb",
         action="store_true",
         help="Delete the local database file before starting the server")
+    parser.add_argument(
+        "--dbbackup",
+        nargs="?",
+        const=True,
+        default=None,
+        help="Back up the local database file before starting the server. "
+             "Optionally provide a backup path.")
     #
     # Add extra arguments here
     #...
