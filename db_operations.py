@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 import sqlite3
 import threading
 import uuid
@@ -36,6 +37,21 @@ def clear_database():
         logging.info("Database file removed.")
     else:
         logging.info("Database file not found; nothing to remove.")
+
+def backup_database(backup_path=None):
+    close_db_connection()
+    if not os.path.exists(DB_FILE):
+        logging.info("Database file not found; nothing to back up.")
+        return None
+
+    if backup_path is None:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        base, ext = os.path.splitext(DB_FILE)
+        backup_path = f"{base}_backup_{timestamp}{ext or '.db'}"
+
+    shutil.copy2(DB_FILE, backup_path)
+    logging.info("Database backed up to %s.", backup_path)
+    return backup_path
 
 def get_database_size_bytes():
     if not os.path.exists(DB_FILE):

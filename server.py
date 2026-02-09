@@ -13,10 +13,17 @@ other BBS servers listed in the config.ini file.
 """
 
 import logging
+import os
 import time
 
 from config_init import initialize_config, get_interface, init_cli_parser, merge_config
-from db_operations import clear_database, get_database_size_bytes, initialize_database
+from db_operations import (
+    DB_FILE,
+    backup_database,
+    clear_database,
+    get_database_size_bytes,
+    initialize_database,
+)
 from js8call_integration import JS8CallClient
 from message_processing import on_receive
 from meshtastic import BROADCAST_NUM
@@ -68,7 +75,21 @@ def main():
 
     logging.info(f"TC²-BBS is running on {system_config['interface_type']} interface...")
 
+    backup_done = False
+    if args.dbbackup:
+        backup_path = None if args.dbbackup is True else args.dbbackup
+        backup_database(backup_path)
+        backup_done = True
+
     if args.cleandb:
+        if os.path.exists(DB_FILE):
+            try:
+                response = input("Backup database before cleanup? [y/N]: ").strip().lower()
+            except EOFError:
+                response = ""
+            if response in {"y", "yes"} and not backup_done:
+                backup_path = None if args.dbbackup is True else args.dbbackup
+                backup_database(backup_path)
         logging.info("Clearing database file before startup.")
         clear_database()
 

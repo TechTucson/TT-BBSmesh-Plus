@@ -45,6 +45,9 @@ Main menu entries are configured in `config.ini`, but the standard items include
 * **Command:** `sm,,<short_name>,<subject>,<message>`
 * Example: `sm,,N0CALL,Hello,Meet at 7pm.`
 
+**Quick check mail**
+* **Command:** `cm`
+
 ### Bulletins
 **Path:** Main → BBS → Bulletins (`L`)
 
@@ -188,10 +191,45 @@ Follow the prompts for each step.
 
 Displays the go-bag checklist items.
 
+**Update the checklist text**
+Edit `GO_BAG_CHECKLIST` in `command_handlers.py`. Each line is a quoted string with a `\n` at the end. Restart the server after saving changes.
+
 ### Radio/Comms Reference
 **Path:** Main → Readiness → Radio Reference (`R`)
 
 Displays the radio/comms quick reference template.
+
+**Update the radio/comms reference**
+Edit `RADIO_REFERENCE` in `command_handlers.py`. Each line is a quoted string with a `\n` at the end. Restart the server after saving changes.
+
+---
+
+## Database Cleanup & Backup (CLI)
+
+You can clear the SQLite database before startup using the server CLI flag. This is useful for resetting the BBS data during development or testing.
+
+**Commands**
+
+```
+python3 server.py --cleandb
+```
+
+```
+python3 server.py --dbbackup
+```
+
+```
+python3 server.py --dbbackup /path/to/backup.db
+```
+
+**Notes**
+* This removes the existing database contents before the server initializes a fresh database.
+* Use with caution—this is destructive and cannot be undone.
+* When you run `--cleandb`, the server prompts you to back up the database first.
+* `--dbbackup` creates a timestamped backup by default, or uses the path you supply.
+**Notes**
+* This removes the existing database contents before the server initializes a fresh database.
+* Use with caution—this is destructive and cannot be undone.
 
 ---
 
@@ -300,6 +338,7 @@ You can send these commands directly (without navigating menus):
 * **List channels:** `chl`
 * **Post channel:** `chp,,<name>,<url>`
 * **Tic-Tac-Toe move:** `ttt,,<game_id>,<pos>`
+* **Check mail:** `cm`
 * **Hangman guess:** `hang,,<game_id>,<letter>`
 * **Connect Four move:** `c4,,<game_id>,<column>`
 * **Mastermind guess:** `mm,,<game_id>,<guess>`
