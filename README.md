@@ -7,6 +7,9 @@ TC2 (https://github.com/TheCommsChannel) has done excellent work building TC²-B
 I still consider myself a novice in these spaces, so this effort is as much about learning as it is about adding functionality. Rather than reinventing the wheel, I chose to build on an existing, well-designed project, both for efficiency and as a hands-on way to deepen my understanding.
 
 While TC²-BBS forms the core of this work, the original inspiration actually came from this repository: https://github.com/SpudGunMan/meshing-around
+
+## 
+Added a How To Readme : https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/HOWTO.md
 ## Added Enhancements
 
 - TC²-BBS already comes with the essentials which include a BBS, Mail, and even JS8 Integration. The Integrations that I have completed at the moment are:
@@ -31,6 +34,19 @@ While TC²-BBS forms the core of this work, the original inspiration actually ca
    
 ## Added Games
 - Tic Tac Toe
+- Hangman
+- Connect Four
+- MasterMind
+- Battleship
+- WordChain
+- Trivia
+- Chess/Checkers
+
+## Added Readiness Menu
+- Check-In
+- Team Roster
+- Go Bag Checklist
+- Radio/Comms Reference
 
 ## Upcoming Enhancements
   - Adding some sort of APRS Functionality
@@ -181,6 +197,7 @@ A video of it in use is available on our YouTube channel:
 ## License
 
 GNU General Public License v3.0
+
 
 
 
