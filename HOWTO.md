@@ -326,6 +326,21 @@ python3 server.py --dbbackup /path/to/backup.db
 * Enter your move when prompted (format depends on the players).
 * **Quick move:** `move,,<game_id>,<move>`
 
+### Dope Wars
+**Path:** Main → Games → Dope Wars (`D`)
+
+**Start a run**
+1) Choose Dope Wars.
+2) The game starts a 7-day run with cash, debt, and a random market.
+
+**Actions**
+* `S` = status/market snapshot
+* `B` = buy (format: `<drug> <qty>`)
+* `L` = sell (format: `<drug> <qty>`)
+* `T` = travel to next day/market
+* `E` = end game and score
+* **Quick action:** `dw,,<status|buy|sell|travel|end>`
+
 ---
 
 ## Quick Command Reference
@@ -347,3 +362,4 @@ You can send these commands directly (without navigating menus):
 * **Word Chain play:** `wc,,<game_id>,<word>`
 * **Trivia answer:** `triv,,<game_id>,<answer>`
 * **Boardgame move:** `move,,<game_id>,<move>`
+* **Dope Wars action:** `dw,,<status|buy|sell|travel|end>`

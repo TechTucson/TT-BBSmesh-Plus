@@ -41,6 +41,7 @@ Added a How To Readme : https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/
 - WordChain
 - Trivia
 - Chess/Checkers
+- Dope Wars
 
 ## Added Readiness Menu
 - Check-In

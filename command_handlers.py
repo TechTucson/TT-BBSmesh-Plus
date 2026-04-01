@@ -29,7 +29,7 @@ from db_operations import (
 from utils import (
     get_node_id_from_num, get_node_info,
     get_node_short_name, send_message,
-    update_user_state
+    update_user_state, get_user_state
 )
 from Tools.Ollama import ask_ollama
 
@@ -146,7 +146,10 @@ def build_menu(items, menu_name):
         elif item.strip() == 'N':
             menu_str += "Su[N]Moon [5]\n"
         elif item.strip() == 'D':
-            menu_str += "[D]efine [6]\n"
+            if "Games" in menu_name:
+                menu_str += "[D]ope Wars\n"
+            else:
+                menu_str += "[D]efine [6]\n"
         elif item.strip() == 'A':
             menu_str += "[A]DSB [7]\n"
         elif item.strip() == 'O':
@@ -2570,9 +2573,153 @@ def handle_quick_help_command(sender_id, interface):
         "TTT,, - Tic Tac Toe Move\nHANG,, - Hangman Guess\nC4,, - Connect Four Move\n"
         "MM,, - Mastermind Guess\nBSSET,, - Battleship Set Ships\nBSFIRE,, - Battleship Fire\n"
         "WC,, - Word Chain Play\nTRIV,, - Trivia Answer\nMOVE,, - Chess/Checkers Move\n"
+        "DW,, - Dope Wars Action (status|buy|sell|travel|end)\n"
     )
     send_message(response, sender_id, interface)
     
+
+
+def _dopewars_drugs():
+    return ["weed", "acid", "coke", "heroin"]
+
+
+def _dopewars_generate_prices():
+    base_ranges = {
+        "weed": (80, 350),
+        "acid": (400, 1500),
+        "coke": (1200, 5500),
+        "heroin": (2500, 9000),
+    }
+    prices = {}
+    for drug, (low, high) in base_ranges.items():
+        value = random.randint(low, high)
+        spike_roll = random.random()
+        if spike_roll < 0.08:
+            value *= random.randint(2, 4)
+        elif spike_roll > 0.93:
+            value = max(40, value // random.randint(2, 3))
+        prices[drug] = value
+    return prices
+
+
+def _dopewars_format_status(state):
+    inventory = state.get('inventory', {})
+    used_space = sum(inventory.values())
+    free_space = state.get('max_space', 100) - used_space
+    lines = [
+        "💊 Dope Wars 💊",
+        f"Day {state.get('day', 1)}/{state.get('max_days', 7)} — {state.get('city', 'Bronx')}",
+        f"Cash: ${state.get('cash', 0)}",
+        f"Debt: ${state.get('debt', 0)}",
+        f"Bag Space: {free_space}/{state.get('max_space', 100)}",
+        "Inventory: " + ", ".join(f"{drug}:{qty}" for drug, qty in inventory.items()),
+        "Market: " + ", ".join(f"{drug}:${price}" for drug, price in state.get('prices', {}).items()),
+        "[S]tatus [B]uy [L]sell [T]ravel [E]nd",
+        "Type BACK to return.",
+    ]
+    return "\n".join(lines)
+
+
+def _dopewars_advance_day(state):
+    state['day'] += 1
+    state['debt'] = int(state.get('debt', 0) * 1.1)
+    state['prices'] = _dopewars_generate_prices()
+    cities = ["Bronx", "Brooklyn", "Queens", "Manhattan", "Staten Island"]
+    state['city'] = random.choice(cities)
+
+
+def handle_dopewars_command(sender_id, interface):
+    state = {
+        'command': 'DOPEWARS',
+        'step': 1,
+        'day': 1,
+        'max_days': 7,
+        'cash': 2000,
+        'debt': 5500,
+        'max_space': 100,
+        'inventory': {drug: 0 for drug in _dopewars_drugs()},
+        'prices': _dopewars_generate_prices(),
+        'city': 'Bronx',
+    }
+    update_user_state(sender_id, state)
+    send_message(_dopewars_format_status(state), sender_id, interface)
+
+
+def handle_dopewars_quick_command(sender_id, message, interface):
+    state = get_user_state(sender_id)
+    if not state or state.get('command') != 'DOPEWARS':
+        send_message("Start from Games > Dope Wars first.", sender_id, interface)
+        return
+    parts = [p.strip().lower() for p in message.split(',,') if p.strip()]
+    if len(parts) != 2:
+        send_message("Format: DW,,<status|buy|sell|travel|end>", sender_id, interface)
+        return
+    handle_dopewars_steps(sender_id, parts[1], state.get('step', 1), state, interface, None)
+
+
+def handle_dopewars_steps(sender_id, message, step, state, interface, bbs_nodes):
+    message = message.lower().strip()
+    if step == 1:
+        if message == 's' or message == 'status':
+            send_message(_dopewars_format_status(state), sender_id, interface)
+        elif message == 'b' or message == 'buy':
+            send_message("Buy format: <drug> <qty> (example: weed 5)", sender_id, interface)
+            update_user_state(sender_id, {**state, 'step': 2})
+        elif message == 'l' or message == 'sell':
+            send_message("Sell format: <drug> <qty> (example: acid 2)", sender_id, interface)
+            update_user_state(sender_id, {**state, 'step': 3})
+        elif message == 't' or message == 'travel':
+            _dopewars_advance_day(state)
+            if state['day'] > state['max_days']:
+                inventory_value = sum(state['inventory'][d] * state['prices'][d] for d in _dopewars_drugs())
+                net = state['cash'] + inventory_value - state['debt']
+                send_message(f"🏁 Dope Wars over! Final net worth: ${net}", sender_id, interface)
+                handle_help_command(sender_id, interface, 'games')
+                return
+            update_user_state(sender_id, {**state, 'step': 1})
+            send_message(f"✈️ Traveled to {state['city']}.\n" + _dopewars_format_status(state), sender_id, interface)
+        elif message == 'e' or message == 'end':
+            inventory_value = sum(state['inventory'][d] * state['prices'][d] for d in _dopewars_drugs())
+            net = state['cash'] + inventory_value - state['debt']
+            send_message(f"Game ended. Net worth: ${net}", sender_id, interface)
+            handle_help_command(sender_id, interface, 'games')
+        else:
+            send_message("Pick S, B, L, T, or E.", sender_id, interface)
+    elif step in [2, 3]:
+        parts = message.split()
+        if len(parts) != 2 or not parts[1].isdigit():
+            send_message("Use format: <drug> <qty>", sender_id, interface)
+            return
+        drug, qty_raw = parts
+        qty = int(qty_raw)
+        if drug not in _dopewars_drugs() or qty <= 0:
+            send_message("Invalid drug or qty.", sender_id, interface)
+            return
+        prices = state['prices']
+        inventory = state['inventory']
+        if step == 2:
+            free_space = state['max_space'] - sum(inventory.values())
+            cost = prices[drug] * qty
+            if qty > free_space:
+                send_message("Not enough bag space.", sender_id, interface)
+                return
+            if cost > state['cash']:
+                send_message("Not enough cash.", sender_id, interface)
+                return
+            inventory[drug] += qty
+            state['cash'] -= cost
+            action = f"Bought {qty} {drug} for ${cost}."
+        else:
+            if qty > inventory[drug]:
+                send_message("Not enough inventory to sell.", sender_id, interface)
+                return
+            revenue = prices[drug] * qty
+            inventory[drug] -= qty
+            state['cash'] += revenue
+            action = f"Sold {qty} {drug} for ${revenue}."
+        update_user_state(sender_id, {**state, 'step': 1})
+        send_message(action + "\n" + _dopewars_format_status(state), sender_id, interface)
+
 def handle_time_command(sender_id, interface, menu_name=None):
     now = datetime.datetime.now()
     send_message(now.strftime("%Y-%m-%d %H:%M:%S"), sender_id, interface)

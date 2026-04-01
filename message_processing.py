@@ -20,6 +20,7 @@ from command_handlers import (
     handle_word_chain_command, handle_word_chain_steps, handle_word_chain_play_command,
     handle_trivia_command, handle_trivia_steps, handle_trivia_answer_command,
     handle_boardgame_command, handle_boardgame_steps, handle_boardgame_move_command,
+    handle_dopewars_command, handle_dopewars_steps, handle_dopewars_quick_command,
     handle_readiness_checkin_command, handle_readiness_roster_command,
     handle_checkin_steps, handle_roster_steps, handle_go_bag_command,
     handle_radio_reference_command
@@ -55,6 +56,7 @@ games_menu_handlers = {
     "w": handle_word_chain_command,
     "r": handle_trivia_command,
     "k": handle_boardgame_command,
+    "d": handle_dopewars_command,
     "x": handle_help_command
 }
 
@@ -162,6 +164,8 @@ def process_message(sender_id, message, interface, is_sync_message=False):
             handle_trivia_answer_command(sender_id, message_lower, interface)
         elif message_lower.startswith("move,,"):
             handle_boardgame_move_command(sender_id, message_lower, interface)
+        elif message_lower.startswith("dw,,"):
+            handle_dopewars_quick_command(sender_id, message_lower, interface)
         elif message_lower.startswith("cm"):
             handle_check_mail_command(sender_id, interface)
         elif message_lower.startswith("pb,,"):
@@ -202,7 +206,7 @@ def process_message(sender_id, message, interface, is_sync_message=False):
                 if state and state.get('command') in ['HANGMAN', 'CONNECT4']:
                     handle_help_command(sender_id, interface, 'games')
                     return
-                if state and state.get('command') in ['MASTERMIND', 'BATTLESHIP', 'WORD_CHAIN', 'TRIVIA', 'BOARDGAME']:
+                if state and state.get('command') in ['MASTERMIND', 'BATTLESHIP', 'WORD_CHAIN', 'TRIVIA', 'BOARDGAME', 'DOPEWARS']:
                     handle_help_command(sender_id, interface, 'games')
                     return
                 handle_help_command(sender_id, interface)
@@ -285,6 +289,8 @@ def process_message(sender_id, message, interface, is_sync_message=False):
                     handle_trivia_steps(sender_id, message, step, state, interface, bbs_nodes)
                 elif command == 'BOARDGAME':
                     handle_boardgame_steps(sender_id, message, step, state, interface, bbs_nodes)
+                elif command == 'DOPEWARS':
+                    handle_dopewars_steps(sender_id, message, step, state, interface, bbs_nodes)
                 elif command == 'CHECKIN':
                     handle_checkin_steps(sender_id, message, step, state, interface, bbs_nodes)
                 elif command == 'ROSTER':
