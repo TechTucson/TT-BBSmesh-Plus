@@ -27,10 +27,9 @@ Added a How To Readme : https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/
   - Added a Local LLM using Ollama
     - Take a Look here: Coming Soon
   - Added a Weather Tool This takes audio from National Weather Forecast and SAFE Creates Text, Exposes that text and is presented to the user. 
-    - Take a Look here: Coming Soon  
+    - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/ENHANCEMENT-WX.md 
   - Added a Readiness menu with check-ins, team roster, go-bag checklist, and radio/comms reference.
-  - Added a Weather Tool This takes audio from National Weather Forecast and SAFE Creates Text, Exposes that text and is presented to the user. 
-    - Take a Look here: Coming Soon
+
    
 ## Added Games
 - Tic Tac Toe
