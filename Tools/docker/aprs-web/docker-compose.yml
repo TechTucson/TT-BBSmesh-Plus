@@ -7,3 +7,15 @@ services:
       - "8091:80"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/data
+
+  aprs-tiles:
+    image: maptiler/tileserver-gl:latest
+    container_name: tt-aprs-tiles
+    restart: unless-stopped
+    volumes:
+      - ./data:/data:ro
+    command: ["--mbtiles", "/data/map.mbtiles"]
+    expose:
+      - "8080"
