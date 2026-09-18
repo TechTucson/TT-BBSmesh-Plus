@@ -97,12 +97,30 @@ cd TT-BBSmesh-Plus
    You'll need to open up the config.ini file in a text editor and make your changes following the instructions below
    
    **[interface]**  
-   If using `type = serial` and you have multiple devices connected, you will need to uncomment the `port =` line and enter the port of your device. While the client can use Bluetooth and TCP, we'll focus on a directly connected device. (Through USB)   
-   
-   Windows Example:  
-   `port = COM3`   
-   
- 
+   For a USB-connected Meshtastic device:
+   ````ini`
+   [interface]
+   type = serial
+   port = /dev/ttyACM0
+   `````
+
+   For a network-connected Meshtastic device, use TCP. TCP defaults to port 4403:
+   ````ini`
+   [interface]
+   type = tcp
+   hostname = 192.168.1.100
+   port = 4403
+   `````
+
+   **MeshMonitor Virtual Node:** MeshMonitor can proxy a physical Meshtastic node and expose a separate Meshtastic TCP endpoint. Its Virtual Node normally listens on TCP port 4404. TT-BBSmesh-Plus can connect directly to that endpoint:
+   ````ini`
+   [interface]
+   type = tcp
+   hostname = 192.168.1.50
+   port = 4404
+   `````
+   Replace `192.168.1.50` with the address of the machine running MeshMonitor.
+
    **[sync]**  
    Enter a list of other BBS nodes you would like to sync messages and bulletins with. Separate each by comma and no spaces as shown in the example below.   
    You can find the nodeID in the menu under `Radio Configuration > User` for each node, or use this script for getting nodedb data from a device:  
