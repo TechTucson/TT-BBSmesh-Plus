@@ -14,21 +14,24 @@ Added a How To Readme : https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/
 
 - TC²-BBS already comes with the essentials which include a BBS, Mail, and even JS8 Integration. The Integrations that I have completed at the moment are:
   - Adding a Bot that tells you the time.
-    - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/TIME.md
+    - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/TIME.md   
+
   - Adding a Bot that tells you the sunset/sunrise.
-    - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/SUN.md
+    - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/SUN.md   
+   
   - Adding a Dictionary
-    - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/ENHANCEMENT-DICTIONARY.md
+    - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/ENHANCEMENT-DICTIONARY.md   
   - Adding some sort of ADSB Functionality
     - You can see the latest ( and the last 10) planes your ADSB Receiver has logged.
     - Take a look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/ENHANCEMENT-ADSB.md
   - Added a Local LLM using Ollama
     - Take a Look here: Coming Soon
-  - Added a Weather Tool This takes audio from National Weather Forecast and SAFE Creates Text, Exposes that text and is presented to the user.
-    - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/ENHANCEMENT-WX.md
+  - Added a Weather Tool This takes audio from National Weather Forecast and SAFE Creates Text, Exposes that text and is presented to the user. 
+    - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/ENHANCEMENT-WX.md 
   - Added a Readiness menu with check-ins, team roster, go-bag checklist, and radio/comms reference.
   - Added APRS lookups backed by the local APRS collector API. Send `APRS LATEST` (or `APRS LATEST 25`) for recent packets, or `APRS N0CALL` for a station's packets.
 
+   
 ## Added Games
 - Tic Tac Toe
 - Hangman
@@ -47,7 +50,7 @@ Added a How To Readme : https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/
 
 ## Setup
 - Believe it or not, I am attempting to do this solely on a Windows Machine and port this at a future time to my SBCs Running Linux. Why Windows? Well it's running on a lot more things, Figured I'd try to make it easier on the entry-level folks giving things a try.
-  - Since we are testing and adding functionality, I have moved this to a MiniPC Running Ubuntu 24.04.
+  - Since we are testing and adding functionality, I have moved this to a MiniPC Running Ubuntu 24.04. 
 ### Requirements
 
 - Python 3.x
@@ -56,7 +59,7 @@ Added a How To Readme : https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/
   - I am Using Lora, but you are free to use any device you have or you'd like ( as long as they can run Meshtastic)
 - ADSB
   - RTL-SDR V3
-    - `sudo docker run -d --name readsb3 --device=/dev/bus/usb -p 8090:8080 -p 30003:30003 -p 30005:30005 --restart unless-stopped ghcr.io/wiedehopf/readsb:latest --device-type rtlsdr --write-json yes --json-location /run/readsb --write-json-every 1`
+    - ```sudo docker run -d   --name readsb3   --device=/dev/bus/usb   -p 8090:8080   -p 30003:30003   -p 30005:30005   --restart unless-stopped   ghcr.io/wiedehopf/readsb:latest   --device-type rtlsdr  --write-json yes   --json-location /run/readsb   --write-json-every 1```
   - ADSB Parser Dockerfile
     - The Tools/docker/adsb Dockerfile must be built and running for the ADSBParser utility to function.
     - Ensure the host machine can access the RTL-SDR (rtl_sdr works and the device is visible to Docker).
@@ -65,75 +68,81 @@ Added a How To Readme : https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/
     - `sdr`: tunes NOAA weather radio frequencies with `rtl_fm`, captures audio with `sox`, decodes SAME alerts with `multimon-ng`, and uses Whisper to transcribe voice audio into a shared SQLite database.
     - `api`: serves the latest/history records from the shared database and provides a simple WebSocket-backed dashboard on port 9000.
   - The host must have a working RTL-SDR setup (`rtl_sdr` runs and the USB device is visible to Docker).
-  - `sudo docker -d compose up`
+  - ```sudo docker -d compose up``` 
 
 ### Installation
 
 1. Clone the repository:
 ```sh
-git clone https://github.com/TechTucson/TT-BBSmesh-Plus.git
+[git clone https://github.com/TechTucson/TT-BBSmesh-Plus.git]
 cd TT-BBSmesh-Plus
-```
+   ```
 
-2. Set up a Python virtual environment:
-```sh
-python -m venv venv
-```
-3. Activate the virtual environment:
-```sh
-source venv/bin/activate
-```
-4. Install the required packages:
-```sh
-pip install -r requirements.txt
-```
+2. Set up a Python virtual environment:  
 
-5. Set up the configuration in `config.ini`:
-   Open `config.ini` and make your changes following the examples below.
-
-   **[interface]**
-
-   For a USB-connected Meshtastic device:
-```ini
-[interface]
-type = serial
-port = /dev/ttyACM0
-```
-
-   For a network-connected Meshtastic device, use TCP:
-```ini
-[interface]
-type = tcp
-hostname = 192.168.1.100
-port = 4403
-```
-
-   **MeshMonitor Virtual Node:** MeshMonitor can proxy a physical Meshtastic node and expose a separate Meshtastic TCP endpoint. Its Virtual Node normally listens on TCP port 4404. TT-BBSmesh-Plus can now connect to that endpoint:
-```ini
-[interface]
-type = tcp
-hostname = 192.168.1.50
-port = 4404
-```
-Replace `192.168.1.50` with the address of the machine running MeshMonitor.
-
-   **[sync]**
-   Enter a list of other BBS nodes you would like to sync messages and bulletins with. Separate each by comma and no spaces as shown in the example below.
+    ```sh
+   python -m venv venv  
+   ```
+3. Activate the virtual environment:  
+    ```sh
+   source venv/bin/activate   ```
+5. Install the required packages:  
    
-   Example Config:
-```ini
-[interface]
-type = tcp
-hostname = 192.168.1.50
-port = 4404
+   ```sh
+   pip install -r requirements.txt
+   ```
 
-[sync]
-bbs_nodes = !f53f4abc,!f3abc123
-```
+7. Set up the configuration in `config.ini`:  
+
+   You'll need to open up the config.ini file in a text editor and make your changes following the instructions below
+   
+   **[interface]**  
+   For a USB-connected Meshtastic device:
+   ````ini`
+   [interface]
+   type = serial
+   port = /dev/ttyACM0
+   `````
+
+   For a network-connected Meshtastic device, use TCP. TCP defaults to port 4403:
+   ````ini`
+   [interface]
+   type = tcp
+   hostname = 192.168.1.100
+   port = 4403
+   `````
+
+   **MeshMonitor Virtual Node:** MeshMonitor can proxy a physical Meshtastic node and expose a separate Meshtastic TCP endpoint. Its Virtual Node normally listens on TCP port 4404. TT-BBSmesh-Plus can connect directly to that endpoint:
+   ````ini`
+   [interface]
+   type = tcp
+   hostname = 192.168.1.50
+   port = 4404
+   `````
+   Replace `192.168.1.50` with the address of the machine running MeshMonitor.
+
+   **[sync]**  
+   Enter a list of other BBS nodes you would like to sync messages and bulletins with. Separate each by comma and no spaces as shown in the example below.   
+   You can find the nodeID in the menu under `Radio Configuration > User` for each node, or use this script for getting nodedb data from a device:  
+   
+   [Meshtastic-Python-Examples/print-nodedb.py at main · pdxlocations/Meshtastic-Python-Examples (github.com)](https://github.com/pdxlocations/Meshtastic-Python-Examples/blob/main/print-nodedb.py)  
+   
+   Example Config:  
+   
+   ```ini
+   [interface]  
+   type = serial  
+   port = COM6  
+    
+   
+   [sync]  
+   bbs_nodes = !f53f4abc,!f3abc123  
+   ```
 
 ### Running the Server
 
 Run the server with:
+
 ```sh
 python server.py
 ```
@@ -143,7 +152,14 @@ Be sure you've followed the Python virtual environment steps above and activated
 ## Command line arguments
 ```
 $ python server.py --help
-Meshtastic BBS system
+████████╗███████╗ ██████╗██╗  ██╗    ████████╗██╗   ██╗ ██████╗███████╗ ██████╗ ███╗   ██╗
+╚══██╔══╝██╔════╝██╔════╝██║  ██║    ╚══██╔══╝██║   ██║██╔════╝██╔════╝██╔═══██╗████╗  ██║
+   ██║   █████╗  ██║     ███████║       ██║   ██║   ██║██║     ███████╗██║   ██║██╔██╗ ██║
+   ██║   ██╔══╝  ██║     ██╔══██║       ██║   ██║   ██║██║     ╚════██║██║   ██║██║╚██╗██║
+   ██║   ███████╗╚██████╗██║  ██║       ██║   ╚██████╔╝╚██████╗███████║╚██████╔╝██║ ╚████║
+   ╚═╝   ╚══════╝ ╚═════╝╚═╝  ╚═╝       ╚═╝    ╚═════╝  ╚═════╝╚══════╝ ╚═════╝ ╚═╝  ╚═══╝
+
+Meshtastic Version
 
 usage: server.py [-h] [--config CONFIG] [--interface-type {serial,tcp}] [--port PORT] [--host HOST] [--mqtt-topic MQTT_TOPIC]
 
@@ -155,11 +171,12 @@ options:
                         System configuration file
   --interface-type {serial,tcp}, -i {serial,tcp}
                         Node interface type
-  --port PORT, -p PORT  Serial port for serial interfaces, or TCP port for TCP interfaces
+  --port PORT, -p PORT  Serial port
   --host HOST           TCP host address
   --mqtt-topic MQTT_TOPIC, -t MQTT_TOPIC
                         MQTT topic to subscribe
 ```
+
 
 ## Automatically run at boot
 
@@ -167,9 +184,9 @@ options:
 
 ## Radio Configuration
 
-Note: There have been reports of issues with some device roles that may allow the BBS to communicate for a short time, but then the BBS will stop responding to requests.
+Note: There have been reports of issues with some device roles that may allow the BBS to communicate for a short time, but then the BBS will stop responding to requests. 
 
-The following device roles have been working:
+The following device roles have been working: 
 - **Client**
 - **Router_Client**
 
@@ -184,13 +201,22 @@ The following device roles have been working:
 
 ## Usage
 
-You interact with the BBS by sending direct messages to the node that's connected to the system running the Python script. Sending any message to it will get a response with the main menu.
+You interact with the BBS by sending direct messages to the node that's connected to the system running the Python script. Sending any message to it will get a response with the main menu.  
 Make selections by sending messages based on the letter or number in brackets - Send M for [M]ail Menu for example.
 
 A video of it in use is available on our YouTube channel:
 
 [![TC²-BBS-Mesh](https://img.youtube.com/vi/d6LhY4HoimU/0.jpg)](https://www.youtube.com/watch?v=d6LhY4HoimU)
 
+
 ## License
 
 GNU General Public License v3.0
+
+
+
+
+
+
+
+
