@@ -48,9 +48,6 @@ Added a How To Readme : https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/
 - Go Bag Checklist
 - Radio/Comms Reference
 
-## Upcoming Enhancements
-  - Adding some sort of APRS Functionality
-
 ## Setup
 - Believe it or not, I am attempting to do this solely on a Windows Machine and port this at a future time to my SBCs Running Linux. Why Windows? Well it's running on a lot more things, Figured I'd try to make it easier on the entry-level folks giving things a try.
   - Since we are testing and adding functionality, I have moved this to a MiniPC Running Ubuntu 24.04. 
