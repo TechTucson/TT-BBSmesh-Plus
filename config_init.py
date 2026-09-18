@@ -32,7 +32,7 @@ def init_cli_parser() -> argparse.Namespace:
     parser.add_argument(
         "--port", "-p",
         action="store",
-        help="Serial port",
+        help="Serial port for serial interfaces, or TCP port for TCP interfaces",
         default=None)
     
     parser.add_argument(
@@ -65,8 +65,7 @@ def init_cli_parser() -> argparse.Namespace:
     
     return args
     
-    
-def merge_config(system_config:dict[str, Any], args:argparse.Namespace) -> dict[str, Any]:
+    def merge_config(system_config:dict[str, Any], args:argparse.Namespace) -> dict[str, Any]:
     """Function merges configuration read from the config file and provided on the CLI.
     
     CLI arguments override values defined in the config file.
@@ -87,7 +86,7 @@ def merge_config(system_config:dict[str, Any], args:argparse.Namespace) -> dict[
         system_config['port'] = args.port
         
     if args.host is not None:
-        system_config['host'] = args.host
+        system_config['hostname'] = args.host
     
     return system_config
 
@@ -100,7 +99,7 @@ def initialize_config(config_file: str = None) -> dict[str, Any]:
     config - parsed config file
     interface_type - type of the active interface
     hostname - host name for TCP interface
-    port - serial port name for serial interface
+    port - serial port name for serial interface, or TCP port for TCP interface
     bbs_nodes - list of peer nodes to sync with
 
     Args:
@@ -142,7 +141,6 @@ def initialize_config(config_file: str = None) -> dict[str, Any]:
     }
 
 
-
 def get_interface(system_config:dict[str, Any]) -> meshtastic.stream_interface.StreamInterface:
     """
     Function opens and returns an instance meshtastic interface of type specified by the configuration
@@ -182,7 +180,16 @@ def get_interface(system_config:dict[str, Any]) -> meshtastic.stream_interface.S
             elif system_config['interface_type'] == 'tcp':
                 if not system_config['hostname']:
                     raise ValueError("Hostname must be specified for TCP interface")
-                return meshtastic.tcp_interface.TCPInterface(hostname=system_config['hostname'])
+
+                # Meshtastic's TCP interface defaults to port 4403.  Allow
+                # the BBS to connect to a proxy such as MeshMonitor Virtual
+                # Node on another TCP port (normally 4404).
+                tcp_port = int(system_config['port']) if system_config['port'] else 4403
+
+                return meshtastic.tcp_interface.TCPInterface(
+                    hostname=system_config['hostname'],
+                    portNumber=tcp_port
+                )
             else:
                 raise ValueError("Invalid interface type specified in config file")
         except PermissionError as e:
