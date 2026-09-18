@@ -64,8 +64,9 @@ def init_cli_parser() -> argparse.Namespace:
     args = parser.parse_args()
     
     return args
-    
-    def merge_config(system_config:dict[str, Any], args:argparse.Namespace) -> dict[str, Any]:
+
+
+def merge_config(system_config:dict[str, Any], args:argparse.Namespace) -> dict[str, Any]:
     """Function merges configuration read from the config file and provided on the CLI.
     
     CLI arguments override values defined in the config file.
@@ -181,10 +182,16 @@ def get_interface(system_config:dict[str, Any]) -> meshtastic.stream_interface.S
                 if not system_config['hostname']:
                     raise ValueError("Hostname must be specified for TCP interface")
 
-                # Meshtastic's TCP interface defaults to port 4403.  Allow
+                # Meshtastic's TCP interface defaults to port 4403. Allow
                 # the BBS to connect to a proxy such as MeshMonitor Virtual
                 # Node on another TCP port (normally 4404).
-                tcp_port = int(system_config['port']) if system_config['port'] else 4403
+                try:
+                    tcp_port = int(system_config['port']) if system_config['port'] else 4403
+                except (TypeError, ValueError) as e:
+                    raise ValueError("TCP port must be a valid integer") from e
+
+                if not 1 <= tcp_port <= 65535:
+                    raise ValueError("TCP port must be between 1 and 65535")
 
                 return meshtastic.tcp_interface.TCPInterface(
                     hostname=system_config['hostname'],
