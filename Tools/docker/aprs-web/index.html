@@ -41,10 +41,25 @@ footer{color:#7f8a94;font-size:.78rem;margin-top:10px}button{background:#252d35;
 const fmtTime=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?v:d.toLocaleString()};
 function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function position(payload){
-  const m=String(payload||"").match(/[!=\/][A-Z]?([0-9]{2})([0-9]{2}\.[0-9]{2})([NS])[\/ ]([0-9]{3})([0-9]{2}\.[0-9]{2})([EW])/);
+  const s=String(payload||"");
+
+  // APRS uncompressed position:
+  // !DDMM.mmN/DDDMM.mmE
+  // =DDMM.mmN/DDDMM.mmE
+  // /DDMM.mmN/DDDMM.mmE
+  // @timestampDDMM.mmN/DDDMM.mmE
+  const m=s.match(
+    /[!=\/@](?:[0-9]{6}z)?([0-9]{2})([0-9]{2}\.[0-9]{2})([NS])([\/\\S])([0-9]{3})([0-9]{2}\.[0-9]{2})([EW])/
+  );
+
   if(!m)return null;
-  let lat=Number(m[1])+Number(m[2])/60,lon=Number(m[4])+Number(m[5])/60;
-  if(m[3]==="S")lat=-lat;if(m[6]==="W")lon=-lon;
+
+  let lat=Number(m[1])+Number(m[2])/60;
+  let lon=Number(m[5])+Number(m[6])/60;
+
+  if(m[3]==="S")lat=-lat;
+  if(m[7]==="W")lon=-lon;
+
   return{lat,lon};
 }
 
