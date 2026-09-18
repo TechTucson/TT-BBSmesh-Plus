@@ -1,1 +1,2 @@
-
+- ADSBParser works in conjunction with the https://github.com/TechTucson/TT-BBSmesh-Plus/tree/main/Tools/docker/adsb container, and it called the container name to pull logs from it.
+- WXparser, works in conjunction with the  https://github.com/TechTucson/TT-BBSmesh-Plus/tree/main/Tools/docker/weatherstac container
