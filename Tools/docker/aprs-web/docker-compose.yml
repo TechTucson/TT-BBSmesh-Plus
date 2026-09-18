@@ -1,0 +1,9 @@
+services:
+  aprs-web:
+    build: .
+    container_name: tt-aprs-web
+    restart: unless-stopped
+    ports:
+      - "8091:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
