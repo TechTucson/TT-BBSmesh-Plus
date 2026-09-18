@@ -121,7 +121,7 @@ def decoder_loop():
     rtl = subprocess.Popen(
         rtl_cmd,
         stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
+        stderr=None,
     )
 
     direwolf = subprocess.Popen(
