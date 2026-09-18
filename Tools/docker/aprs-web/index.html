@@ -51,7 +51,7 @@ function position(payload){
 const style={
   version:8,
   name:"TT APRS Shortbread",
-  sources:{shortbread:{type:"vector",tiles:["/tiles/{z}/{x}/{y}.pbf"],minzoom:0,maxzoom:14}},
+  sources:{shortbread:{type:"vector",tiles:[`${window.location.origin}/tiles/{z}/{x}/{y}.pbf`],minzoom:0,maxzoom:14}},
   layers:[
     {id:"background",type:"background",paint:{"background-color":"#f2efe9"}},
     {id:"ocean",type:"fill",source:"shortbread","source-layer":"ocean",paint:{"fill-color":"#aad3df"}},
