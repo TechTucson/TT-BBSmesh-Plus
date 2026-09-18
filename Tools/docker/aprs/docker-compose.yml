@@ -1,0 +1,17 @@
+services:
+  aprs:
+    build: .
+    container_name: tt-aprs
+    restart: unless-stopped
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data
+    environment:
+      APRS_FREQUENCY: 144.390M
+      RTL_SAMPLE_RATE: 22050
+      RTL_GAIN: auto
+      RTL_PPM: 0
+      API_PORT: 8080
