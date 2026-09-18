@@ -173,23 +173,32 @@ def health():
 def packets(
     limit: int = Query(default=100, ge=1, le=5000),
     offset: int = Query(default=0, ge=0),
+    callsign: str | None = Query(default=None, pattern=r"^[A-Za-z0-9]{1,6}(?:-[0-9]{1,2})?$"),
 ):
+    where_clause = ""
+    parameters = []
+    if callsign:
+        where_clause = "WHERE UPPER(from_callsign) = UPPER(?)"
+        parameters.append(callsign)
+
     with closing(get_db()) as db:
         rows = db.execute(
-            """
+            f"""
             SELECT id, received_at, from_callsign, to_callsign,
                    path, payload, raw_packet
             FROM packets
+            {where_clause}
             ORDER BY id DESC
             LIMIT ? OFFSET ?
             """,
-            (limit, offset),
+            (*parameters, limit, offset),
         ).fetchall()
 
     return {
         "count": len(rows),
         "limit": limit,
         "offset": offset,
+        "callsign": callsign.upper() if callsign else None,
         "packets": [dict(row) for row in rows],
     }
 

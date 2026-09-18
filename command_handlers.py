@@ -4,8 +4,12 @@ import json
 import logging
 import os
 import random
+import re
 import subprocess
 import time
+from urllib.parse import urljoin
+
+import requests
 from suntime import Sun, SunTimeException
 
 from meshtastic import BROADCAST_NUM
@@ -47,6 +51,8 @@ DICTIONARY_PATH = os.path.join('Tools', 'dictionary.json')
 _dictionary_cache = None
 ADSB_PARSER_PATH = os.path.join(os.path.dirname(__file__), 'Tools', 'ADSBPArser.py')
 WX_PARSER_PATH = os.path.join(os.path.dirname(__file__), 'Tools', 'wxparser.py')
+APRS_DEFAULT_URL = 'http://127.0.0.1:8080'
+APRS_MAX_RESULTS = 100
 
 GO_BAG_CHECKLIST = (
     "🎒 72-Hour Go-Bag Checklist 🎒\n"
@@ -2773,3 +2779,82 @@ def handle_wx_steps(sender_id, message, step, state, interface):
         response = _run_wx_parser(entries)
         send_message(response, sender_id, interface)
         handle_wx_command(sender_id, interface)
+
+
+def _get_aprs_api_url():
+    """Return the APRS collector base URL configured for this BBS."""
+    return config.get('aprs', 'api_url', fallback=APRS_DEFAULT_URL).rstrip('/') + '/'
+
+
+def _format_aprs_packets(packets, heading):
+    if not packets:
+        return f"{heading}\nNo packets found."
+
+    lines = [heading]
+    for packet in packets:
+        received_at = packet.get('received_at', 'unknown').replace('+00:00', 'Z')
+        source = packet.get('from_callsign', 'unknown')
+        destination = packet.get('to_callsign') or 'unknown'
+        path = packet.get('path') or 'direct'
+        payload = packet.get('payload', '')
+        lines.append(f"{received_at} {source}>{destination} ({path})\n{payload}")
+    return '\n'.join(lines)
+
+
+def handle_aprs_command(sender_id, message, interface):
+    """Handle direct APRS queries without requiring a menu state.
+
+    ``APRS LATEST [1-100]`` returns recent packets, while ``APRS CALLSIGN``
+    returns packets received from that station.
+    """
+    parts = message.strip().split()
+    if len(parts) == 1:
+        send_message(
+            "📡 APRS 📡\nAPRS LATEST [1-100] - recent packets (default 100)\n"
+            "APRS <callsign> - packets from a station",
+            sender_id,
+            interface,
+        )
+        return
+
+    query = parts[1].upper()
+    if query == 'LATEST':
+        if len(parts) > 3:
+            send_message("Usage: APRS LATEST [1-100]", sender_id, interface)
+            return
+        try:
+            limit = int(parts[2]) if len(parts) == 3 else APRS_MAX_RESULTS
+        except ValueError:
+            send_message("Latest packet count must be a number from 1-100.", sender_id, interface)
+            return
+        if not 1 <= limit <= APRS_MAX_RESULTS:
+            send_message("Latest packet count must be from 1-100.", sender_id, interface)
+            return
+        params = {'limit': limit}
+        heading = f"📡 APRS latest {limit}"
+    elif len(parts) == 2 and re.fullmatch(r'[A-Z0-9]{1,6}(?:-[0-9]{1,2})?', query):
+        params = {'limit': APRS_MAX_RESULTS, 'callsign': query}
+        heading = f"📡 APRS {query} (up to {APRS_MAX_RESULTS})"
+    else:
+        send_message("Usage: APRS LATEST [1-100] or APRS <callsign>", sender_id, interface)
+        return
+
+    try:
+        response = requests.get(
+            urljoin(_get_aprs_api_url(), 'api/packets'), params=params, timeout=10
+        )
+        response.raise_for_status()
+        data = response.json()
+        packets = data.get('packets')
+        if not isinstance(packets, list):
+            raise ValueError('APRS API returned an invalid packet list')
+    except requests.RequestException:
+        logging.exception("Unable to reach APRS API")
+        send_message("APRS service is unavailable. Please try again later.", sender_id, interface)
+        return
+    except (ValueError, TypeError):
+        logging.exception("Unable to read APRS API response")
+        send_message("APRS service returned an invalid response.", sender_id, interface)
+        return
+
+    send_message(_format_aprs_packets(packets, heading), sender_id, interface)
