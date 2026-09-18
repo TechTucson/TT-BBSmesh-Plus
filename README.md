@@ -29,6 +29,8 @@ Added a How To Readme : https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/
   - Added a Weather Tool This takes audio from National Weather Forecast and SAFE Creates Text, Exposes that text and is presented to the user. 
     - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/ENHANCEMENT-WX.md 
   - Added a Readiness menu with check-ins, team roster, go-bag checklist, and radio/comms reference.
+  - Added APRS lookups backed by the local APRS collector API. Send `APRS LATEST` (or `APRS LATEST 25`) for recent packets, or `APRS N0CALL` for a station's packets.
+    - Take a look at the [APRS setup and command guide](documentation/ENHANCEMENT-APRS.md).
 
    
 ## Added Games
@@ -46,9 +48,6 @@ Added a How To Readme : https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/
 - Team Roster
 - Go Bag Checklist
 - Radio/Comms Reference
-
-## Upcoming Enhancements
-  - Adding some sort of APRS Functionality
 
 ## Setup
 - Believe it or not, I am attempting to do this solely on a Windows Machine and port this at a future time to my SBCs Running Linux. Why Windows? Well it's running on a lot more things, Figured I'd try to make it easier on the entry-level folks giving things a try.
