@@ -16,6 +16,6 @@ services:
     restart: unless-stopped
     volumes:
       - ./data:/data:ro
-    command: ["--mbtiles", "/data/map.mbtiles"]
+    command: ["--file", "/data/map.mbtiles"]
     expose:
       - "8080"
