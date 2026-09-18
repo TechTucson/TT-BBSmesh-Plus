@@ -35,6 +35,10 @@ Latest 1000 packets:
 
     curl "http://localhost:8080/api/packets?limit=1000"
 
+Packets from a callsign (case-insensitive):
+
+    curl "http://localhost:8080/api/packets?callsign=N0CALL&limit=100"
+
 Pagination:
 
     curl "http://localhost:8080/api/packets?limit=100&offset=100"

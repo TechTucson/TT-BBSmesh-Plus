@@ -22,7 +22,7 @@ from command_handlers import (
     handle_boardgame_command, handle_boardgame_steps, handle_boardgame_move_command,
     handle_readiness_checkin_command, handle_readiness_roster_command,
     handle_checkin_steps, handle_roster_steps, handle_go_bag_command,
-    handle_radio_reference_command
+    handle_radio_reference_command, handle_aprs_command
 )
 from db_operations import add_bulletin, add_mail, delete_bulletin, delete_mail, get_db_connection, add_channel
 from js8call_integration import handle_js8call_command, handle_js8call_steps, handle_group_message_selection
@@ -142,7 +142,9 @@ def process_message(sender_id, message, interface, is_sync_message=False):
             channel_name, channel_url = parts[1], parts[2]
             add_channel(channel_name, channel_url)
     else:
-        if message_lower.startswith("sm,,"):
+        if message_lower == 'aprs' or message_lower.startswith('aprs '):
+            handle_aprs_command(sender_id, message, interface)
+        elif message_lower.startswith("sm,,"):
             handle_send_mail_command(sender_id, message_lower, interface, bbs_nodes)
         elif message_lower.startswith("ttt,,"):
             handle_tictactoe_move_command(sender_id, message_lower, interface)
