@@ -30,6 +30,7 @@ Added a How To Readme : https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/
     - Take a Look here: https://github.com/TechTucson/TT-BBSmesh-Plus/blob/main/documentation/ENHANCEMENT-WX.md 
   - Added a Readiness menu with check-ins, team roster, go-bag checklist, and radio/comms reference.
   - Added APRS lookups backed by the local APRS collector API. Send `APRS LATEST` (or `APRS LATEST 25`) for recent packets, or `APRS N0CALL` for a station's packets.
+  - Added a receive-only local WSPR collector and internal web monitor. The collector decodes RTL-SDR captures into SQLite and the monitor is available on port 8092; see `Tools/docker/wspr/README.md`.
 
    
 ## Added Games
