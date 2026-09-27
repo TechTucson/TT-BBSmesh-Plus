@@ -117,9 +117,12 @@ def wait_for_cycle():
 
 def capture_and_decode():
     gain_args = [] if GAIN.lower() == "auto" else ["-g", GAIN]
+
+    # WSPR uses USB audio tones on HF. Direct sampling lets compatible RTL-SDR
+    # devices tune below 28 MHz without an external upconverter.
     rtl_command = [
-        "rtl_fm", "-f", FREQUENCY, "-s", SAMPLE_RATE, "-r", SAMPLE_RATE,
-        "-p", PPM, *gain_args, "-",
+        "rtl_fm", "-E", "direct", "-M", "usb", "-f", FREQUENCY,
+        "-s", SAMPLE_RATE, "-r", SAMPLE_RATE, "-p", PPM, *gain_args, "-",
     ]
     sox_command = [
         "sox", "-t", "raw", "-r", SAMPLE_RATE, "-e", "signed-integer",
