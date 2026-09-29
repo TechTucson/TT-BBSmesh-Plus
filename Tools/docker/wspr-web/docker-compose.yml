@@ -1,0 +1,9 @@
+services:
+  wspr-web:
+    build: .
+    container_name: tt-wspr-web
+    restart: unless-stopped
+    ports:
+      - "8092:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
