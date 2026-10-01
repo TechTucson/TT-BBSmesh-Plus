@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TT-CW Receiver</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<main>
+  <header><div><h1>TT-CW</h1><p>RTL-SDR V3 HF Morse Receiver</p></div><div id="status" class="pill">CONNECTING</div></header>
+  <section class="radio">
+    <div class="freq" id="freq">7.050.000 MHz</div>
+    <div class="sub">40m · CW · RTL-SDR V3 Q-branch</div>
+    <form id="tune"><input id="frequency" type="number" min="500000" max="28800000" step="10" value="7050000"><button>Tune</button></form>
+    <div class="meter"><span id="meter"></span></div>
+    <div class="stats"><span>Signal <b id="level">--</b></span><span>Tone <b id="tone">700 Hz</b></span><span>Speed <b id="wpm">18 WPM</b></span><span>Key <b id="key">OFF</b></span></div>
+  </section>
+  <section><h2>Decoded CW</h2><pre id="decoded">Waiting for CW…</pre></section>
+  <section><h2>Raw Morse</h2><pre id="raw">--</pre></section>
+  <section class="footer"><span id="error"></span><a href="/api/status">API</a> · <a href="/api/rtl-test">RTL Test</a></section>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>
