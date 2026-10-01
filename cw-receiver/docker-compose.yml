@@ -1,0 +1,18 @@
+services:
+  tt-cw:
+    build: .
+    container_name: tt-cw
+    restart: unless-stopped
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    ports:
+      - "8083:8083"
+    environment:
+      FREQUENCY: "7050000"
+      SAMPLE_RATE: "12000"
+      PPM: "0"
+      RTL_DEVICE: "0"
+      CW_TONE: "700"
+      CW_WPM: "18"
+    volumes:
+      - ./data:/app/data
